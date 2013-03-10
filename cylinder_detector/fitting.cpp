@@ -41,12 +41,12 @@ bool CLineAndEllipseFitting::fitLineFromPoints(vector<Point> points,
     return false;
   }
 
-  //Vec4f fittedLine;
-  //fitLine(points, fittedLine, CV_DIST_L2, 0, 0.01, 0.01);
+  Vec4f fittedLine;
+  fitLine(points, fittedLine, CV_DIST_L2, 0, 0.01, 0.01);
 
-  //newLine = TLine(fittedLine, points.size());
+  newLine = TLine(fittedLine, points.size());
 
-  newLine = TLine(points.at(points.size() - 1), points.at(points.size() - 2), points.size());
+  //newLine = TLine(points.at(points.size() - 1), points.at(points.size() - 2), points.size());
 
   newLine.endPoint1 = points.at(points.size() - 1);
   newLine.endPoint2 = points.at(points.size() - 2);

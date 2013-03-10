@@ -29,6 +29,8 @@ public:
    * @param     int _modelTrashold              treshold for line model
    */
   CRansacEllipse(int _numberOfIteration,
+                 TLine _centralLine,
+                 cv::Point2d _vanishingPoint,
                  int _modelDistanceTrashold  = 20,
                  int _modelPyramideDistanceTreshold  = 20,
                  double _modelAngleTreshold = 5.0
@@ -50,6 +52,10 @@ public:
   int fitEllipseRANSAC(std::vector<TEllipse> ellipses,
                      std::vector<TEllipse>& inliers);
 
+  
+  void eliminateWrongEllipses(std::vector<TEllipse> inputEllipses,
+                              std::vector<TEllipse>& outputEllipses);
+  
 protected:
 
   /**
@@ -57,32 +63,35 @@ protected:
    *
    * Define model for RANSAC. The criterium is number of ellipses in interval
    *
-   * @param     std::vector<TEllipse> modelEllipses      model ellipses
-   * @param     TEllipse x                             tested point
+   * @param     TEllipse testedEllipse      tested ellipse
+   * @param     TEllipse modelEllipse       model ellipse
    *
-   * @result    bool                                    true when point x fits
+   * @result    bool                       true when model ellipse fits
    */
-  virtual bool fitRansacModel(std::vector<TEllipse> modelEllipses, TEllipse x);
+  virtual bool fitRansacModel(TEllipse modelEllipse);
 
   /**
    * Constructor fitRansacModel
    *
    * Check if data can fit the model.
    *
-   * @param     std::vector<TEllipse> modelEllipses     model ellipses
+   * @param     TEllipse modelEllipses     model ellipses
    *
    * @result    bool                                    correct model data
    */
-  virtual bool isModel(std::vector<TEllipse> modelEllipses);
+  virtual bool isModel(TEllipse modelEllipses);
 
-private:
+  //private:
+public:
+  TLine centralLine;
+  cv::Point2d vanishingPoint;
+  
   int modelDistanceTrashold;    // treshold for line centers criterium
   int modelPyramideDistanceTreshold;
   double modelAngleTreshold;
 
   TLine pyramideDistanceLine;
   TLine pyramideTreeShapedLine;
-  TLine distanceLine;
 };
 
 #endif // DP_LINE_RANSAC__H

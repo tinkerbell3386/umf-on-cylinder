@@ -36,6 +36,17 @@ struct TLine {
   TLine(double a, double b, double c, int score = 0);
 };
 
+struct TParabola {  
+  cv::Point2d apex;
+  double param;
+  double angle;
+  int score;
+  
+  TParabola(){}
+  TParabola(cv::Point2d apex, double param, double angle, int score = 0);
+};
+
+
 cv::Point2d getLineIntersection(TLine p, TLine q);
 
 double getPointToPointDistanceSquared(cv::Point2d a, cv::Point2d b);
@@ -45,6 +56,8 @@ double getDistanceLineToPointSquared(TLine baseLine, cv::Point2d point);
 void drawLine(cv::Mat& img, TLine newLine, cv::Scalar color, int thickness = 1);
 
 void drawPoint(cv::Mat& img, cv::Point2d point, cv::Scalar color, int size = 5);
+
+//void drawParabola(cv::Mat& img, TParabola parabola, cv::Scalar color, int thickness = 1);
 
 cv::Vec2f normalizeVector(cv::Vec2f vector);
 

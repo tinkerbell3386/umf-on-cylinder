@@ -169,7 +169,7 @@ Line getGroupThroughVanish(std::vector<Line> &lineGroup, std::vector<Line> &resu
     //e::fitHyperplane< e::Vector3d, e::Hyperplane<double, 3> >(bestSolution.size(), eLines, &hyperplane);
     umdFitHyperplane(bestSolution.size(), eLines, hyperplane);
 	e::Vector3d hyperplaneNormal = hyperplane.normal();
-	hyperplaneNormal.normalize();
+	//hyperplaneNormal.normalize();
 	vanishingPoint.a = hyperplaneNormal[0];
 	vanishingPoint.b = hyperplaneNormal[1];
 	vanishingPoint.c = hyperplaneNormal[2];

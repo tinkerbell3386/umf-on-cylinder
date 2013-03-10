@@ -7,11 +7,12 @@
 #include "fitting.h"
 #include "ellipse_ransac.h"
 #include "umf_wrapper.h"
+#include "lines_clustering.h"
 
 using namespace cv;
 using namespace std;
 
-int scanlineStep = 40;
+int scanlineStep = 20;
 int searchStep = 10;
 int searchRadius = 3;
 
@@ -20,9 +21,8 @@ int main(int argc, char** argv)
   CFindEdges* findEdges = new CFindEdges(scanlineStep, 15, 25);
   CFindEdgels* findEdgels = new CFindEdgels(searchStep, searchRadius, 25);
   CLineAndEllipseFitting* fitting = new CLineAndEllipseFitting();
-  CRansacEllipse* ransac = new CRansacEllipse(200, 10, 10, 3.0);
   CWrapper* wrapper = new CWrapper();
-
+  
   for(int x = 1; x < 1000; x++) {
 
     stringstream str;
@@ -59,144 +59,150 @@ int main(int argc, char** argv)
     vector<TEllipse> ellipses;
     fitting->fitLinesOrEllipse(newEdges, ellipses, lines);
 
+    vector<TLine> linesGrouped;
+    wrapper->setCenter(Point(source.cols / 2, source.rows / 2));
+    wrapper->getLineGroups(lines, linesGrouped);
+    
     vector<TLine> linesSelected;
-    TLine refLine;
-    //wrapper->setCenter(Point(source.cols / 2, source.rows / 2));
-    //wrapper->getLineGroups(lines, linesSelected);
-    Point2d vanishTest = wrapper->GetVanishingPoint(lines, linesSelected, Point(source.cols / 2, source.rows / 2));
+    TLine vanishNormal;
+    Point2d vanishPoint = wrapper->GetVanishingPoint(lines, linesSelected, vanishNormal, Point(source.cols / 2, source.rows / 2));
 
-    cout << "vanishTest: " << vanishTest << endl;
-
+    cout << "vanishPoint: " << vanishPoint << endl;
+    
+    TLine centralLine = TLine(Vec4f(vanishNormal.a, vanishNormal.b, vanishPoint.x, vanishPoint.y));
+    
 ////////////////////////////////////////////////////////////////////////////////
     Mat rgb;
     source.copyTo(rgb);
 
-    // scan lines
-    for(int i = findEdges->scanlineStep/2; i < rgb.rows; i += findEdges->scanlineStep)
-      line(rgb, Point(0, i), Point(rgb.cols-1, i), Scalar(120, 120, 0), 1);
-
-    for(int i = findEdges->scanlineStep/2; i < rgb.cols; i += findEdges->scanlineStep)
-      line(rgb, Point(i, 0), Point(i, rgb.rows-1), Scalar(120, 120, 0), 1);
-
-
-    // origin edge points
-    //for(int i = 0; i < (int)edges.size(); i++)
-      //circle(rgb, edges[i], 3, Scalar(125, 125,125), -1);
-
-    // points, lines, elipses
-    for(int i = 0; i < (int)newEdges.size(); i++) {
-      for(int j = 0; j < (int)newEdges[i].size(); j++) {
-        if(newEdges[i].size() > 10)
-        {
-          drawPoint(rgb, newEdges[i][j], Scalar(255, 0, 0));
-          drawPoint(rgb, edges[i], Scalar(0, 255,0));
-        }
-      }
+    for(int i = 0; i < (int)lines.size(); i++)
+    {
+      drawLine(rgb, lines[i], Scalar(255, 255, 0));
     }
 
 ////////////////////////////////////////////////////////////////////////////////
 
     Mat rgb2;
     source.copyTo(rgb2);
-
-    // points, all ellipses
-    for(int i = 0; i < 11/*(int)lines.size()*/; i++)
+    
+    // points, all ellipses    
+    for(int i = 0; i < (int)linesGrouped.size(); i++)
     {
-      drawLine(rgb2, lines[i], Scalar(255, 0, 0));
-      drawPoint(rgb2, lines[i].endPoint1, Scalar(255, 255, 0));
-      drawPoint(rgb2, lines[i].endPoint2, Scalar(255, 255, 0));
-      cout << "score: " << lines[i].score << endl;
+      drawLine(rgb2, linesGrouped[i], Scalar(255, 255, 0));
     }
-
-    for(int i = 0; i < (int)ellipses.size(); i++)
-    {
-      ellipse(rgb2, ellipses[i].boundingBox, Scalar(0, 255, 0));
-    }
+    
 
 ////////////////////////////////////////////////////////////////////////////////
 
     Mat rgb3;
     source.copyTo(rgb3);
-
-    int inliersNumber;
-    vector<TEllipse> inliers;
-
-    inliersNumber = ransac->fitEllipseRANSAC(ellipses, inliers);
-
-    vector<Point> ellipseCenters;
-    for(int i = 0; i < (int)inliers.size(); i++)
-      ellipseCenters.push_back(inliers.at(i).center);
-
-    TLine ransacLine;
-
-    if(fitting->fitLineFromPoints(ellipseCenters, ransacLine))
-      drawLine(rgb3, ransacLine, Scalar(255,0,0), 2);
-
-    cout << "Number of inliers: " << inliersNumber << endl;
-
-    for (int i=0;i != (int)ellipses.size(); ++i)
-      ellipse(rgb3, ellipses.at(i).boundingBox, Scalar(0, 0, 255));
-
-    for (int i=0;i != (int)inliers.size(); ++i)
-      ellipse(rgb3, inliers.at(i).boundingBox, Scalar(0, 255, 0), 2);
+    
+    drawLine(rgb3, centralLine, Scalar(255, 0, 255), 2);
+    
+    for(int i = 0; i < (int)linesSelected.size(); i++)
+    {
+      drawLine(rgb3, linesSelected[i], Scalar(255, 255, 0));
+    }     
 
 ////////////////////////////////////////////////////////////////////////////////
+
     Mat rgb4;
     source.copyTo(rgb4);
-
-    // origin edge points
-    for(int i = 0; i < (int)linesSelected.size(); i++)
-      drawLine(rgb4, linesSelected[i], Scalar(255,0,0), 1);
-
-    drawLine(rgb4, refLine, Scalar(0, 0, 255), 2);
-
-    //for(int i = 0; i < (int)lines.size(); i++)
-    //  drawLine(rgb4, lines[i], Scalar(0, 0, 120));
+        
+    vector<TLine> finallines;
+    CLineClustring* clustering = new CLineClustring(4.0);
+    clustering->runLinesClustering(linesSelected, finallines);
+      
+    for(int i = 0; i < (int)finallines.size(); i++)
+    {
+      drawLine(rgb4, finallines[i], Scalar(255, 255, 0));
+    }     
+    
+    delete clustering;
 
 ////////////////////////////////////////////////////////////////////////////////
-/*    Mat rgb5;
+    Mat rgb5;
     source.copyTo(rgb5);
 
-    for(int i = 0; i < (int)newEdges.size(); i++)
+    for (int i=0;i != (int)ellipses.size(); ++i) 
     {
-      TEllipse newEllipse;
-      TLine newLine;
-      enShapeType shapeType = fitLineOrEllipse(newEdges[i], newLine, newEllipse);
-      if(IS_ELLIPSE == shapeType)
-      {
-        ellipse(rgb5, newEllipse.boundingBox, Scalar(0, 255, 255));
-        drawPoint(rgb5, newEllipse.center, Scalar(255, 255, 0));
-        drawPoint(rgb5, newEllipse.mainEdge, Scalar(255, 0, 0));
-        line(rgb5, newEllipse.center, newEllipse.mainEdge, Scalar(0, 0, 255));
-
-        Point2f vertices[4];
-        newEllipse.boundingBox.points(vertices);
-        for (int i = 0; i < 4; i++)
-          line(rgb5, vertices[i], vertices[(i+1)%4], Scalar(0,255,0));
-      }
+      ellipse(rgb5, ellipses.at(i).boundingBox, Scalar(255, 255, 0));
     }
-*/
-////////////////////////////////////////////////////////////////////////////////
+    
+////////////////////////////////////////////////////////////////////////////////    
+    Mat rgb6;
+    source.copyTo(rgb6);
 
+    CRansacEllipse* ransac = new CRansacEllipse(500, 
+                                                centralLine, 
+                                                vanishPoint, 10, 10, 3.0);
+    
+    
+    vector<TEllipse> eliminatedElipses;
+    ransac->eliminateWrongEllipses(ellipses, eliminatedElipses);
+    
+    for (int i=0;i != (int)eliminatedElipses.size(); ++i)
+    { 
+      ellipse(rgb6, eliminatedElipses.at(i).boundingBox, Scalar(255, 255, 0), 1);
+    }
+    
+////////////////////////////////////////////////////////////////////////////////    
+    Mat rgb7;
+    source.copyTo(rgb7);   
+    
+    // points, all ellipses
+    int inliersNumber;
+    vector<TEllipse> inliers;   
+    inliersNumber = ransac->fitEllipseRANSAC(ellipses, inliers);
+    
+    cout << "Number of inliers: " << inliersNumber << endl;
+    
+    for (int i=0;i != (int)inliers.size(); ++i)
+    {  
+      ellipse(rgb7, inliers.at(i).boundingBox, Scalar(255, 255, 0), 1);     
+    }
+      
+    delete ransac;
+ 
+    ////////////////////////////////////////////////////////////////////////////////    
+   
 
     cout << "-------" << x << "-------" << endl;
 
-    //imshow("Output: points, lines, elipses", rgb);
-    imshow("Output: points, all ellipses", rgb2);
-    //imshow("Output: ransac line, correct ellipses", rgb3);
-   imshow("Output: selected lines", rgb4);
-    //imshow("Output: ellipses", rgb5);
-    //imshow("Output: draw", draw);
-
+    imshow("Output: All lines", rgb);
+    imshow("Output: Lines grouped by direction", rgb2);
+    imshow("Output: Lines after fitting vanishing point", rgb3);
+    imshow("Output: lines after clustering", rgb4);
+/*
+    imshow("Output: All ellipses", rgb5);
+    imshow("Output: Eliminated bad ellipses", rgb6);
+    imshow("Output: Ellipses after RANSAC", rgb7);
+*/    
+    stringstream str1;
+    str1 << "all-lines" << x << ".png";
     stringstream str2;
-    str2 << "1screenshot" << x << ".png";
-
+    str2 << "grouped-lines" << x << ".png";
     stringstream str3;
-    str3 << "2screenshot" << x << ".png";
-
-    imwrite(str2.str(), rgb);
-    imwrite(str3.str(), rgb2);
-
+    str3 << "vanishing-lines" << x << ".png";
+    stringstream str4;
+    str4 << "clustered-lines" << x << ".png";
+/*
+    stringstream str5;
+    str5 << "all-ellipses" << x << ".png";
+    stringstream str6;
+    str6 << "eliminated-ellipses" << x << ".png";
+    stringstream str7;
+    str7 << "ransac-ellipses" << x << ".png";
+*/    
+    imwrite(str1.str(), rgb);
+    imwrite(str2.str(), rgb2);
+    imwrite(str3.str(), rgb3);
+    imwrite(str4.str(), rgb4);
+/*
+    imwrite(str5.str(), rgb5);
+    imwrite(str6.str(), rgb6);
+    imwrite(str7.str(), rgb7);
+*/    
     uchar c = (uchar)waitKey();
 
     if(c == 27)
@@ -207,7 +213,6 @@ int main(int argc, char** argv)
 
   delete findEdges;
   delete findEdgels;
-  delete ransac;
   delete fitting;
 
   return 0;

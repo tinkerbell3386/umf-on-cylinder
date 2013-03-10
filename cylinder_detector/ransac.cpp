@@ -2,9 +2,8 @@
 
 using namespace std;
 
-CRansac::CRansac(int _numberOfModelData, int _numberOfIteration) :
+CRansac::CRansac(int _numberOfIteration) :
         wrongModels(0),
-        numberOfModelData(_numberOfModelData),
         numberOfIteration(_numberOfIteration)
 {}
 
@@ -14,7 +13,7 @@ int CRansac::runRansac(vector<TEllipse> data, vector<TEllipse>& inliers)
   int bestResult = 0;
   for(int i = 0; i < numberOfIteration; i++)
   {
-    vector<TEllipse> modelData;
+    TEllipse modelData;
     vector<TEllipse> temporaryInliers;
 
     if(!getRandomData(data, modelData))
@@ -33,26 +32,22 @@ int CRansac::runRansac(vector<TEllipse> data, vector<TEllipse>& inliers)
   return bestResult;
 }
 
-bool CRansac::getRandomData(vector<TEllipse> data, vector<TEllipse>& modelData)
+bool CRansac::getRandomData(vector<TEllipse> data, TEllipse& modelData)
 {
-  if((int) data.size() < numberOfModelData)
+  if((int) data.size() < 1)
   {
-    cerr << "ERROR: There is not enough data in the dataset. Needed at least "
-    << numberOfModelData << " but got " << data.size() << "." << endl;
+    cerr << "ERROR: There is no data in the dataset." << endl;
     return false;
   }
 
   uniform_int_distribution<int> uniformDistribution(0, data.size()-1);
 
-  for(int i = 0; i < numberOfModelData; i++)
-  {
-    modelData.push_back(data.at(uniformDistribution(randomGenerator)));
-  }
+  modelData = (data.at(uniformDistribution(randomGenerator)));
 
   return true;
 }
 
-int CRansac::getInliers(vector<TEllipse> data, vector<TEllipse> modelData,
+int CRansac::getInliers(vector<TEllipse> data, TEllipse modelData,
                         vector<TEllipse>& inliers)
 {
   int counter = 0;
@@ -66,7 +61,7 @@ int CRansac::getInliers(vector<TEllipse> data, vector<TEllipse> modelData,
 
   for(int i = 0; i < (int)data.size(); i++)
   {
-    if(fitRansacModel(modelData, data.at(i)))
+    if(fitRansacModel(data.at(i)))
     {
       counter++;
       inliers.push_back(data.at(i));

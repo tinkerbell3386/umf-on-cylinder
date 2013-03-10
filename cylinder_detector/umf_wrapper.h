@@ -15,7 +15,9 @@ public:
   void setCenter(cv::Point imageCenter);
   int getLineGroups(std::vector<TLine> lines, std::vector<TLine>& linesGroup);
 
-  cv::Point2d GetVanishingPoint(std::vector<TLine> lines, std::vector<TLine>& outputLlines, cv::Point imageCenter);
+  cv::Point2d GetVanishingPoint(std::vector<TLine> lines, 
+                                std::vector<TLine>& outputLlines, 
+                                TLine& normal, cv::Point center);
 
   Line convertLineBase(TLine inputLine);
   Line convertLineWhole(TLine inputLine);

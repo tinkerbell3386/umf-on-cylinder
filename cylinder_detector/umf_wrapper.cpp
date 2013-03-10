@@ -1,4 +1,4 @@
-#include "umf_wrapper.h"
+  #include "umf_wrapper.h"
 #include "detect_directions.h"
 #include "detect_umf.h"
 
@@ -28,7 +28,7 @@ void CWrapper::setCenter(Point _imageCenter)
   refLines[3] = lineNormalization(TLine(-1, 1, imageCenter.x - imageCenter.y));
 }
 
-Point2d CWrapper::GetVanishingPoint(vector<TLine> lines, vector<TLine>& outputLlines, Point center)
+Point2d CWrapper::GetVanishingPoint(vector<TLine> lines, vector<TLine>& outputLlines, TLine& normal, Point center)
 {
   setCenter(center);
 
@@ -43,15 +43,7 @@ Point2d CWrapper::GetVanishingPoint(vector<TLine> lines, vector<TLine>& outputLl
 
   vector<Line> umfLines;
   getGroup(linesGroupConverted, umfLines, convertLineBase(refLines[index]), cvPoint(imageCenter.x, imageCenter.y));
-
-  std::cout << "lines2: " << umfLines[0].a << std::endl;
-  std::cout << "lines2: " << umfLines[0].b << std::endl;
-  std::cout << "lines2: " << umfLines[0].c << std::endl;
-  std::cout << "lines2: " << umfLines[0].score << std::endl;
-  std::cout << "lines2: " << umfLines[0].crossi << std::endl;
-  std::cout << "lines2: " << umfLines[0].ip << std::endl;
-  std::cout << "lines2: " << umfLines[0].ip2 << std::endl;
-
+  
   vector<Line> vanishLines;
   Line tmpVanish;
   tmpVanish = getVanish(umfLines, vanishLines, cvPoint(imageCenter.x, imageCenter.y), true);
@@ -62,7 +54,9 @@ Point2d CWrapper::GetVanishingPoint(vector<TLine> lines, vector<TLine>& outputLl
     outputLlines.push_back(convertLineWholeReverse(vanishLines.at(i)));
   }
 
-  return Point2d(tmpVanish.a / tmpVanish.c, tmpVanish.b / tmpVanish.c);
+  normal = convertLineBaseReverse(tmpVanish);
+  
+  return getLineIntersection(outputLlines[0], outputLlines[1]);
 }
 
 int CWrapper::getLineGroups(vector<TLine> lines, vector<TLine>& linesGroup)
@@ -82,8 +76,8 @@ int CWrapper::getLineGroups(vector<TLine> lines, vector<TLine>& linesGroup)
       double dotp = std::abs(refLines[j].a * testLine.a + refLines[j].b * testLine.b);
       if(dotp < 0.5) // cos PI/3 - since there should be PI/2 to get the intersection right - this gives PI/6 allowance in both directions
       {              // je tu presah, jedna cara muze byt ve vice skupinach
-      LineDirectionGroups[j].push_back(lines[i]);
-      LineDirectionScores[j] += lines[i].score;
+        LineDirectionGroups[j].push_back(lines[i]);
+        LineDirectionScores[j] += lines[i].score;
       }
     }
   }
@@ -110,8 +104,6 @@ Line CWrapper::convertLineBase(TLine inputLine)
 Line CWrapper::convertLineWhole(TLine inputLine)
 {
   Line outputLine;
-
-  cout << "to -> lineVector: " << inputLine.lineVector << endl;
 
   outputLine.a = inputLine.a;
   outputLine.b = inputLine.b;
@@ -148,8 +140,6 @@ TLine CWrapper::convertLineWholeReverse(Line inputLine)
   outputLine.lineVector = Vec4f(-inputLine.b, inputLine.a, inputLine.endPoint1.x, inputLine.endPoint1.y);
   outputLine.endPoint1 = Point2d(inputLine.endPoint1.x, inputLine.endPoint1.y);
   outputLine.endPoint2 = Point2d(inputLine.endPoint2.x, inputLine.endPoint2.y);
-
-  cout << "back -> outputLine.lineVector: " << outputLine.lineVector << endl;
 
   return outputLine;
 }

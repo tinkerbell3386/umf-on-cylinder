@@ -96,6 +96,14 @@ TLine::TLine(cv::Point2d pt1, cv::Point2d pt2, int _score)
   score = _score;
 }
 
+TParabola::TParabola(Point2d _apex, double _param, double _angle, int _score)
+{
+  apex = _apex;
+  param = _param;
+  angle = _angle;
+  score = _score;
+}
+
 Point2d getLineIntersection(TLine p, TLine q)
 {
   return Point2d( (-p.c*q.b + p.b*q.c)/(p.a*q.b - p.b*q.a),
@@ -122,8 +130,30 @@ double getDistanceLineToPointSquared(TLine baseLine, Point2d point)
 void drawLine(Mat& img, TLine newLine, Scalar color, int thickness)
 {
 
-  line(img, Point(newLine.lineVector[2] + 2*img.cols*newLine.lineVector[0], newLine.lineVector[3] + 2*img.rows*newLine.lineVector[1]),
-       Point(newLine.lineVector[2] - 2*img.cols*newLine.lineVector[0], newLine.lineVector[3] - 2*img.rows*newLine.lineVector[1]), color, thickness);
+  if(std::abs(newLine.a) > std::abs(newLine.b))
+  {
+    line(img, 
+         Point(-newLine.c / newLine.a, 0),
+         Point(-(newLine.b * img.rows + newLine.c) / newLine.a, img.rows),
+         color, 
+         thickness);
+  } 
+  else 
+  {
+    line(img, 
+         Point(0, -newLine.c / newLine.b),
+         Point(img.cols, -(newLine.a * img.cols + newLine.c) / newLine.b),
+         color, 
+         thickness);
+  }
+  
+/*
+  line(img, 
+       Point(newLine.lineVector[2] + 2*img.cols*newLine.lineVector[0], newLine.lineVector[3] + 2*img.rows*newLine.lineVector[1]),
+       Point(newLine.lineVector[2] - 2*img.cols*newLine.lineVector[0], newLine.lineVector[3] - 2*img.rows*newLine.lineVector[1]), 
+       color, thickness
+      );
+*/
 }
 
 void drawPoint(Mat& img, Point2d point, Scalar color, int size)
@@ -131,6 +161,21 @@ void drawPoint(Mat& img, Point2d point, Scalar color, int size)
   line(img, Point(point.x + size, point.y), Point(point.x - size, point.y), color);
   line(img, Point(point.x, point.y + size), Point(point.x, point.y - size), color);
 }
+
+/*
+void drawParabola(Mat& img, TParabola parabola, Scalar color, int thickness)
+{
+  Point pt1(0, parabola.apex.y); // apex
+  Point pt2;
+  for(int x = 1; x < img.cols; x++)
+  {
+    pt2.x = x;
+    pt2.y = parabola.param*x*x + parabola.apex.y; 
+    line(img, pt1, pt2, color, thickness);
+    pt1 = pt2;
+  }
+}
+*/
 
 Vec2f normalizeVector(Vec2f vector)
 {
@@ -150,7 +195,7 @@ TLine lineNormalization(TLine inputLine)
   outputLine.c = inputLine.c;
   outputLine.score = inputLine.score;
 
-  outputLine.lineVector = Vec4f(-outputLine.a, outputLine.b, outputLine.c, 0);
+  outputLine.lineVector = Vec4f(-outputLine.a, outputLine.b, inputLine.lineVector[2], inputLine.lineVector[3]);
 
   return outputLine;
 }
@@ -158,7 +203,7 @@ TLine lineNormalization(TLine inputLine)
 double getSmallerIntersectionAngle(TLine line1, TLine line2)
 {
   //skalarni soucin 2 jednotkovych vectoru je cosinus uhlu mezni nimi
-  double angle = std::acos(line1.a * line2.a + line1.b * line2.b) * 180.0 / PI;
+  double angle = acos(line1.a * line2.a + line1.b * line2.b) * 180.0 / PI;
 
   if(angle > 270.0)
   {

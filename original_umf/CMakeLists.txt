@@ -20,7 +20,6 @@ set(HDRS_ORIGINAL
 area.h
 cross_ratio.h
 defines.h
-demo_bull.h
 detect_directions.h
 detector_global.h
 detect_umf.h

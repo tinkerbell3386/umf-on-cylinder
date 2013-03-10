@@ -27,7 +27,7 @@ public:
    * @param     int _numberOfModelData          number of data fits the model
    * @param     int _numberOfIteration          number of iteration
    */
-  CRansac(int _numberOfModelData, int _numberOfIteration);
+  CRansac(int _numberOfIteration);
 
   ~CRansac(){}
 
@@ -57,8 +57,7 @@ protected:
    *
    * @result    bool                                    true if "x" fits model
    */
-  virtual bool fitRansacModel(std::vector<TEllipse> modelData,
-                              TEllipse x) = 0;
+  virtual bool fitRansacModel(TEllipse testedEllipse) = 0;
   /**
    * pure virtual method isModel
    *
@@ -68,7 +67,7 @@ protected:
    *
    * @result    bool                                    correct model data
    */
-  virtual bool isModel(std::vector<TEllipse> modelData) = 0;
+  virtual bool isModel(TEllipse modelEllipses) = 0;
 
 private:
 
@@ -83,7 +82,7 @@ private:
    * @result    bool                                    true if select correctly
    */
   bool getRandomData(std::vector<TEllipse> data,
-                      std::vector<TEllipse>& modelData);
+                     TEllipse& modelData);
 
   /**
    * method getInliers
@@ -97,10 +96,9 @@ private:
    * @result    int                                     number of inliers
    */
   int getInliers(std::vector<TEllipse> data,
-                 std::vector<TEllipse> modelData,
+                 TEllipse modelData,
                  std::vector<TEllipse>& inliers);
 
-  int numberOfModelData;
   int numberOfIteration;
   std::default_random_engine randomGenerator;
 };

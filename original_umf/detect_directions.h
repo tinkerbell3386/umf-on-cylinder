@@ -13,5 +13,10 @@ int getLineGroups(std::vector<Line> &lines,
 				  IplImage *draw,
 				  const int refLineOffset = REF_LINE_OFFSET);
 
-
+int getGroup(std::vector<Line> &groupped,
+             std::vector<Line> &lines,
+             Line refLine,
+             CvPoint center,
+             const int refLineOffset = REF_LINE_OFFSET
+);
 #endif
