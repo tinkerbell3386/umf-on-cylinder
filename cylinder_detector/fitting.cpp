@@ -1,5 +1,6 @@
 #include <iostream>
 #include "fitting.h"
+#include "standart_deviation.h"
 
 using namespace cv;
 using namespace std;
@@ -51,6 +52,19 @@ bool CLineAndEllipseFitting::fitLineFromPoints(vector<Point> points,
   newLine.endPoint1 = points.at(points.size() - 1);
   newLine.endPoint2 = points.at(points.size() - 2);
 
+  CStdDev* stdDev = new CStdDev();
+  
+  for(int i = 0; i < (int)points.size(); i++)
+  {
+    stdDev->Push(getDistanceLineToPointSquared(newLine, points.at(i)));
+  }
+  
+  newLine.deviation = stdDev->Variance();
+  
+  //newLine.points = points;
+  
+  delete stdDev;
+  
   return true;
 }
 

@@ -9,8 +9,8 @@ CParabolaFitting::CParabolaFitting(TLine centralLine)
   setupTrasfomationMatrices();
 }
 
-bool CParabolaFitting::fitParabola(vector<Point2d> points, 
-                                        TParabola& parabola)
+bool CParabolaFitting::fitParabola(vector<Point> points, 
+                                   TParabola& parabola, Mat draw)
 {
   if(points.size() < 2) 
   {
@@ -24,6 +24,12 @@ bool CParabolaFitting::fitParabola(vector<Point2d> points,
   vector<Point2d> pointsTrasformed;
   pointsTrasformed.clear();
   transformPointsToY(points, pointsTrasformed);
+
+  for(int i = 0; i < (int)pointsTrasformed.size(); i++)
+  {
+    cout << "pointsTrasformed: " << pointsTrasformed.at(i) << endl;
+    drawPoint(draw, pointsTrasformed.at(i), Scalar(255, 0, 255));
+  }  
   
   Mat Y(pointsTrasformed.size(), 1, CV_64F);
   Mat Z(pointsTrasformed.size(), 2, CV_64F);
@@ -46,7 +52,7 @@ bool CParabolaFitting::fitParabola(vector<Point2d> points,
   return true;
 }
 
-void CParabolaFitting::transformPointsToY(vector<Point2d> input, 
+void CParabolaFitting::transformPointsToY(vector<Point> input, 
                                           vector<Point2d>& output)
 {
   Mat pointsMatrix(3, input.size(), CV_64F);
@@ -67,7 +73,7 @@ void CParabolaFitting::transformPointsToY(vector<Point2d> input,
   }
 }
 
-Point2d CParabolaFitting::transformPointBack(Point2d input)
+Point2d CParabolaFitting::transformPointBack(Point input)
 {
   Mat pointsMatrix(3, 1, CV_64F);
   pointsMatrix.at<double>(0, 0) = input.x;
@@ -80,8 +86,8 @@ Point2d CParabolaFitting::transformPointBack(Point2d input)
   return Point2d(resultMatrix.at<double>(0, 0), resultMatrix.at<double>(1, 0));
 }
 
-void CParabolaFitting::transformPointsBack(vector<Point2d> input, 
-                                          vector<Point2d>& output)
+void CParabolaFitting::transformPointsBack(vector<Point> input, 
+                                          vector<Point>& output)
 {
   Mat pointsMatrix(3, input.size(), CV_64F);
   
@@ -101,7 +107,7 @@ void CParabolaFitting::transformPointsBack(vector<Point2d> input,
   
   for(int i = 0; i < (int)resultMatrix.cols; i++)
   {
-    output.push_back(Point2d(resultMatrix.at<double>(0, i), 
+    output.push_back(Point(resultMatrix.at<double>(0, i), 
                              resultMatrix.at<double>(1, i)));
   }
 }
@@ -114,8 +120,19 @@ void CParabolaFitting::getAngleAndOrigin(TLine line)
     origin = Point2d(0, 0);
   }
   
+  angle = atan(-(line.a / line.b));
+  
+  /*if(PI < angle)
+  {
+    angle = PI/2 - (2*PI - angle);
+  }
+  else
+  {
+    angle = PI/2 - angle;
+  }*/
+  
   // based on slope-intercept (smernicova) equation
-  angle = PI / 2 - atan(-(line.a / line.b));
+  
   origin = Point2d((line.c / line.b), 0);
 }
 

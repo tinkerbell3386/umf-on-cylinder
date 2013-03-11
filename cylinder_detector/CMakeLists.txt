@@ -29,6 +29,7 @@ geometry_fundamentals.cpp
 umf_wrapper.cpp
 line_clustering.cpp
 parabola_fitting.cpp
+fitting_line.cpp
 )
 
 set(HDRS
@@ -42,16 +43,20 @@ umf_wrapper.h
 lines_clustering.h
 standart_deviation.h
 parabola_fitting.h
+fitting_line.h
 )
 
-# Main
+# Ellipse version
 add_executable(cylinder_detector main.cpp ${SRCS} ${HDRS})
 target_link_libraries(cylinder_detector umfOriginal ${OpenCV_LIBS})
 
 # Parabola testing
-add_executable(parabola_test parabola_fitting_test.cpp ${SRCS} ${HDRS})
-target_link_libraries(parabola_test umfOriginal ${OpenCV_LIBS})
+#add_executable(parabola_test parabola_fitting_test.cpp ${SRCS} ${HDRS})
+#target_link_libraries(parabola_test umfOriginal ${OpenCV_LIBS})
 
+# Parabola version
+add_executable(parabola_version main2.cpp ${SRCS} ${HDRS})
+target_link_libraries(parabola_version umfOriginal ${OpenCV_LIBS})
 
 # Ellipse testing
 #add_executable(ransac_test main_ransac_test.cpp ${SRCS} ${HDRS})

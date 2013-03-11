@@ -33,7 +33,8 @@ Point2d CWrapper::GetVanishingPoint(vector<TLine> lines, vector<TLine>& outputLl
   setCenter(center);
 
   vector<TLine> linesGroup;
-  int index = getLineGroups(lines, linesGroup);
+  vector<TLine> linesGroup2;
+  int index = getLineGroups(lines, linesGroup, linesGroup2);
 
   vector<Line> linesGroupConverted;
   for(int i = 0; i < (int)linesGroup.size(); i++)
@@ -59,12 +60,13 @@ Point2d CWrapper::GetVanishingPoint(vector<TLine> lines, vector<TLine>& outputLl
   return getLineIntersection(outputLlines[0], outputLlines[1]);
 }
 
-int CWrapper::getLineGroups(vector<TLine> lines, vector<TLine>& linesGroup)
+int CWrapper::getLineGroups(vector<TLine> lines, vector<TLine>& linesGroup, vector<TLine>& linesGroup2)
 {
   //create set of lines for the four directions
   vector<TLine> LineDirectionGroups[4];
   int LineDirectionScores[] = {0, 0, 0, 0};
-
+  double LineDirectionDev[] = {0, 0, 0, 0};
+  
   for(int i = 0; i < (int)lines.size(); i++)
   {
     TLine testLine = lineNormalization(lines[i]); //normalize, so we don't have to calculate length
@@ -78,15 +80,33 @@ int CWrapper::getLineGroups(vector<TLine> lines, vector<TLine>& linesGroup)
       {              // je tu presah, jedna cara muze byt ve vice skupinach
         LineDirectionGroups[j].push_back(lines[i]);
         LineDirectionScores[j] += lines[i].score;
+        LineDirectionDev[j] += lines[i].deviation;
       }
     }
   }
-
+  
+  double maxValue =  LineDirectionScores[0] / (LineDirectionDev[0] / (LineDirectionGroups[0].size()+1)+1);
+  int index = 0;
+  cout << "result value " << index << ": " << maxValue << endl;
+  
+  for(int i = 1; i < 4; i++)
+  {
+    double value =  LineDirectionScores[i] / (LineDirectionDev[i] / (LineDirectionGroups[i].size()+1)+1);
+    cout << "result value " << i << ": " << value << endl;
+    if(maxValue < value)
+    {
+      maxValue = value;
+      index = i;
+    }
+  }
+  
   // Find the max element
-  int index = max_element(LineDirectionScores, LineDirectionScores + 4) - LineDirectionScores;
+  //int index = max_element(LineDirectionResult, LineDirectionResult + 4 * sizeof(double)) - LineDirectionResult;
 
   linesGroup = LineDirectionGroups[index];
-
+  
+  linesGroup2 = LineDirectionGroups[(index + 2) % 4];
+  
   return index;
 }
 

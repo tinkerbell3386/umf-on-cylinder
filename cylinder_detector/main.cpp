@@ -60,8 +60,9 @@ int main(int argc, char** argv)
     fitting->fitLinesOrEllipse(newEdges, ellipses, lines);
 
     vector<TLine> linesGrouped;
+    vector<TLine> linesGrouped2;
     wrapper->setCenter(Point(source.cols / 2, source.rows / 2));
-    wrapper->getLineGroups(lines, linesGrouped);
+    wrapper->getLineGroups(lines, linesGrouped, linesGrouped2);
     
     vector<TLine> linesSelected;
     TLine vanishNormal;

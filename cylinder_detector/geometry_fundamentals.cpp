@@ -63,6 +63,7 @@ TLine::TLine(Vec4f _lineVector, int _score)
   c = - a * _lineVector[2] - b * _lineVector[3];
 
   score = _score;
+  deviation = 0;
 }
 
 TLine::TLine(double _a, double _b, double _c, int _score)
@@ -74,6 +75,7 @@ TLine::TLine(double _a, double _b, double _c, int _score)
   lineVector = Vec4f(-a, b, c, 0);
 
   score = _score;
+  deviation = 0;
 }
 
 TLine::TLine(cv::Point2d pt1, cv::Point2d pt2, int _score)
@@ -94,6 +96,7 @@ TLine::TLine(cv::Point2d pt1, cv::Point2d pt2, int _score)
   c = - a * lineVector[2] - b * lineVector[3];
 
   score = _score;
+  deviation = 0;
 }
 
 TParabola::TParabola(Point2d _apex, double _param, double _angle, int _score)

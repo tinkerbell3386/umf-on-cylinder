@@ -13,7 +13,7 @@ public:
   ~CWrapper(){};
 
   void setCenter(cv::Point imageCenter);
-  int getLineGroups(std::vector<TLine> lines, std::vector<TLine>& linesGroup);
+  int getLineGroups(std::vector<TLine> lines, std::vector<TLine>& linesGroup, std::vector<TLine>& linesGroup2);
 
   cv::Point2d GetVanishingPoint(std::vector<TLine> lines, 
                                 std::vector<TLine>& outputLlines, 

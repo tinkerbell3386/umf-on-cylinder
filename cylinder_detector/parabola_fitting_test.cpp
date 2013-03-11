@@ -8,7 +8,7 @@ using namespace std;
 
 int main(int argc, char** argv)
 {
-  vector<Point2d> points;
+  vector<Point> points;
     
   double testp = 0.1;
   double testpy0 = 250;
@@ -27,7 +27,7 @@ int main(int argc, char** argv)
   
   CParabolaFitting* fitting = new CParabolaFitting(centralLine);
   
-  vector<Point2d> transfomPoints;
+  vector<Point> transfomPoints;
   transfomPoints.clear();
   fitting->transformPointsBack(points, transfomPoints);
 

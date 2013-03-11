@@ -26,6 +26,10 @@ struct TLine {
   double b;
   double c;
   int score; // number of origin points
+  double deviation;
+  
+  std::vector<cv::Point> points;
+  
   cv::Vec4f lineVector;
   cv::Point2d endPoint1;
   cv::Point2d endPoint2;
