@@ -3,6 +3,19 @@
 
 #include "geometry_fundamentals.h"
 
+/**
+ * class CParabolaFitting
+ * 
+ * This class can fit parabolas by Least Square Error Fitting.
+ * It needs set of points and central line.
+ * Central line defines rotation angle and translation in the direction of X, also X coord of apex.
+ * 
+ * Basic steps:
+ * - Transform parabola that apex lies on the Y axe (apex X coord is 0) and Y is parabola axis.
+ *   So it can fulfil equation: y = p*x*x + y0
+ * - Use Least Square Error to fit this transformed parabola -> find p and y0
+ * - To vizualize this parabola make inverse transformation
+ */
 class CParabolaFitting
 {
 public:
