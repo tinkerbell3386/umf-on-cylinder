@@ -10,20 +10,22 @@ int main(int argc, char** argv)
 {
   vector<Point> points;
     
-  double testp = 0.1;
-  double testpy0 = 250;
+  double testp = 0.01;
+  double testpy0 = 50;
   
-  for(int i = 0; i < 30; i++)
+  for(int i = 0; i < 10; i++)
   {
-    double x = rand() % 250;
+    double x = rand() % 200;
     double y = testp * x * x + testpy0;
     
-    cout << "point " << i << ": " << Point2d(x, y) << endl;
+    cout << "point " << i << ": " << Point((int)x, (int)y) << endl;
     
-    points.push_back(Point2d(x, y));
+    points.push_back(Point((int)x, (int)y));
   }
   
-  TLine centralLine = TLine(-1, 1, 50);
+  TLine centralLine = TLine(-0.999003, -0.0243787, 313.3);
+  
+  //TLine centralLine = TLine(1, 0, 0);
   
   CParabolaFitting* fitting = new CParabolaFitting(centralLine);
   
@@ -33,7 +35,8 @@ int main(int argc, char** argv)
 
   
   TParabola parabola;
-  fitting->fitParabola(transfomPoints, parabola);
+  Mat draw(500, 500, CV_8UC3);
+  fitting->fitParabola(transfomPoints, parabola, draw);
   
   Mat img(500, 500, CV_8UC3);
   img.setTo(0);
@@ -45,6 +48,7 @@ int main(int argc, char** argv)
   for(int i = 0; i < (int)points.size(); i++)
   {
     drawPoint(img, points.at(i), Scalar(0, 255, 0));
+    cout << "transfomPoint " << i << ": " << transfomPoints.at(i) << endl;
     drawPoint(img, transfomPoints.at(i), Scalar(0, 255, 255));
   }
 

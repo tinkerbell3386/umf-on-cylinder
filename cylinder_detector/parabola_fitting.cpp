@@ -5,7 +5,7 @@ using namespace cv;
 
 CParabolaFitting::CParabolaFitting(TLine centralLine)
 {
-  getAngleAndOrigin(centralLine);
+  getAngleAndOrigin(TLine(centralLine.a, -centralLine.b, centralLine.c));
   setupTrasfomationMatrices();
 }
 
@@ -24,12 +24,17 @@ bool CParabolaFitting::fitParabola(vector<Point> points,
   vector<Point2d> pointsTrasformed;
   pointsTrasformed.clear();
   transformPointsToY(points, pointsTrasformed);
-
+  
+  /*
+  cout << "points.size(): " << points.size() << endl;
+  cout << "pointsTrasformed.size(): " << pointsTrasformed.size() << endl;
+  
   for(int i = 0; i < (int)pointsTrasformed.size(); i++)
   {
     cout << "pointsTrasformed: " << pointsTrasformed.at(i) << endl;
-    drawPoint(draw, pointsTrasformed.at(i), Scalar(255, 0, 255));
+    drawPoint(draw, pointsTrasformed.at(i), Scalar(0, 0, 255));
   }  
+  */
   
   Mat Y(pointsTrasformed.size(), 1, CV_64F);
   Mat Z(pointsTrasformed.size(), 2, CV_64F);
@@ -66,7 +71,11 @@ void CParabolaFitting::transformPointsToY(vector<Point> input,
   
   Mat resultMatrix = transformationMatrix * pointsMatrix;
   
-  for(int i = 0; i < (int)resultMatrix.rows; i++)
+  cout << "pointsMatrix: " << pointsMatrix.rows << "x" << pointsMatrix.cols << endl;
+  cout << "transformationMatrix: " << transformationMatrix.rows << "x" << transformationMatrix.cols << endl;
+  cout << "resultMatrix: " << resultMatrix.rows << "x" << resultMatrix.cols << endl;
+  
+  for(int i = 0; i < (int)resultMatrix.cols; i++)
   {
     output.push_back(Point2d(resultMatrix.at<double>(0, i), 
                              resultMatrix.at<double>(1, i)));
@@ -98,12 +107,12 @@ void CParabolaFitting::transformPointsBack(vector<Point> input,
     pointsMatrix.at<double>(2, i) = 1;
   }
   
-  cout << "pointsMatrix" << endl << pointsMatrix << endl;
-  cout << "transformationMatrixInverse" << endl << transformationMatrixInverse << endl;
+  //cout << "pointsMatrix" << endl << pointsMatrix << endl;
+  //cout << "transformationMatrixInverse" << endl << transformationMatrixInverse << endl;
   
   Mat resultMatrix = transformationMatrixInverse * pointsMatrix;
   
-  cout << "resultMatrix" << endl  << resultMatrix << endl;
+  //cout << "resultMatrix" << endl  << resultMatrix << endl;
   
   for(int i = 0; i < (int)resultMatrix.cols; i++)
   {
@@ -114,26 +123,27 @@ void CParabolaFitting::transformPointsBack(vector<Point> input,
 
 void CParabolaFitting::getAngleAndOrigin(TLine line)
 {
-  if(line.b == 0.0)
+  if(line.a == 0.0) // pokud jsou osa X a centralni primka jsou rovnobezne
+  {
+    angle = PI / 2;
+    origin = Point2d(0, 0);
+  }
+  else if (line.b == 0) // pokud jsou osa Y a centralni primka jsou rovnobezne
   {
     angle = 0.0;
     origin = Point2d(0, 0);
   }
-  
-  angle = atan(-(line.a / line.b));
-  
-  /*if(PI < angle)
-  {
-    angle = PI/2 - (2*PI - angle);
-  }
   else
   {
-    angle = PI/2 - angle;
-  }*/
-  
-  // based on slope-intercept (smernicova) equation
-  
-  origin = Point2d((line.c / line.b), 0);
+    //ax+by+c=0 => y = -ax/b - c/b => smernice: -a/b
+    // odecet od PI/2 - prepocet uhlu k X do Y -> viz wiki smernicova rovnice
+    angle = PI / 2 - atan(-line.a / line.b);
+    
+    //ax+bx+c=0 AND y=0 => x = -c/a
+    origin = Point2d(-(line.c / line.a), 0);
+  }
+  cout << "angle: " <<  angle * 180 / PI << endl;
+  cout << "origin: " <<  origin << endl;
 }
 
 void CParabolaFitting::setupTrasfomationMatrices()

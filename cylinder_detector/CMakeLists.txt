@@ -51,8 +51,8 @@ add_executable(cylinder_detector main.cpp ${SRCS} ${HDRS})
 target_link_libraries(cylinder_detector umfOriginal ${OpenCV_LIBS})
 
 # Parabola testing
-#add_executable(parabola_test parabola_fitting_test.cpp ${SRCS} ${HDRS})
-#target_link_libraries(parabola_test umfOriginal ${OpenCV_LIBS})
+add_executable(parabola_test parabola_fitting_test.cpp ${SRCS} ${HDRS})
+target_link_libraries(parabola_test umfOriginal ${OpenCV_LIBS})
 
 # Parabola version
 add_executable(parabola_version main2.cpp ${SRCS} ${HDRS})
