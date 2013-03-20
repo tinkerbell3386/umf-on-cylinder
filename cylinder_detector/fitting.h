@@ -16,7 +16,7 @@ public:
 
   void setSizeThreslods(cv::Size imageSize);
 
-  void fitLinesOrEllipse(std::vector<std::vector<cv::Point> > edges,
+  void fitLinesOrEllipse(std::vector<std::vector<cv::Point2f> > edges,
                          std::vector<TEllipse>& ellipses,
                          std::vector<TLine>& lines
                         );
@@ -27,11 +27,11 @@ public:
     IS_UNKNOWN
   };
 
-  bool fitLineFromPoints(std::vector<cv::Point> points, TLine &newLine);
+  bool fitLineFromPoints(std::vector<cv::Point2f> points, TLine &newLine);
 
-  bool fitEllipseFromPoints(std::vector<cv::Point> points, TEllipse &newEllipse);
+  bool fitEllipseFromPoints(std::vector<cv::Point2f> points, TEllipse &newEllipse);
 
-  enShapeType fitLineOrEllipse(std::vector<cv::Point> points, TLine &newLine, TEllipse &newEllipse);
+  enShapeType fitLineOrEllipse(std::vector<cv::Point2f> points, TLine &newLine, TEllipse &newEllipse);
 
   bool isLine(double a, double b);
 

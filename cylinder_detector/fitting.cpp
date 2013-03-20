@@ -33,7 +33,7 @@ void CLineAndEllipseFitting::setSizeThreslods(Size imageSize)
   }
 }
 
-bool CLineAndEllipseFitting::fitLineFromPoints(vector<Point> points,
+bool CLineAndEllipseFitting::fitLineFromPoints(vector<Point2f> points,
                                                 TLine &newLine)
 {
   if(points.size() < 2)
@@ -68,7 +68,7 @@ bool CLineAndEllipseFitting::fitLineFromPoints(vector<Point> points,
   return true;
 }
 
-bool CLineAndEllipseFitting::fitEllipseFromPoints(vector<Point> points,
+bool CLineAndEllipseFitting::fitEllipseFromPoints(vector<Point2f> points,
                                                    TEllipse &newEllipse)
 {
   if(points.size() < 5)
@@ -77,7 +77,7 @@ bool CLineAndEllipseFitting::fitEllipseFromPoints(vector<Point> points,
     return false;
   }
 
-  newEllipse = TEllipse(fitEllipse(points), points.size());
+  newEllipse = TEllipse(fitEllipse(points), points.at(points.size() / 2), points.size());
 
   return true;
 }
@@ -88,7 +88,7 @@ bool CLineAndEllipseFitting::isLine(double a, double b)
   return smallRatioThreshold > b / a || aLongThreshold < a || aShortThreshold > a;
 }
 
-CLineAndEllipseFitting::enShapeType CLineAndEllipseFitting::fitLineOrEllipse(vector<Point> points,
+CLineAndEllipseFitting::enShapeType CLineAndEllipseFitting::fitLineOrEllipse(vector<Point2f> points,
                                                       TLine &newLine,
                                                       TEllipse &newEllipse)
 {
@@ -118,7 +118,7 @@ CLineAndEllipseFitting::enShapeType CLineAndEllipseFitting::fitLineOrEllipse(vec
   return IS_UNKNOWN;
 }
 
-void CLineAndEllipseFitting::fitLinesOrEllipse(vector<vector<Point> > edges,
+void CLineAndEllipseFitting::fitLinesOrEllipse(vector<vector<Point2f> > edges,
                                                 vector<TEllipse>& ellipses,
                                                 vector<TLine>& lines
                                                 )

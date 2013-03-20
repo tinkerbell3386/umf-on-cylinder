@@ -7,10 +7,10 @@ using namespace cv;
 
 CWrapper::CWrapper()
 {
-  setCenter(Point(0 ,0));
+  setCenter(Point2f(0 ,0));
 }
 
-void CWrapper::setCenter(Point _imageCenter)
+void CWrapper::setCenter(Point2f _imageCenter)
 {
   imageCenter = _imageCenter;
 
@@ -28,7 +28,7 @@ void CWrapper::setCenter(Point _imageCenter)
   refLines[3] = lineNormalization(TLine(-1, 1, imageCenter.x - imageCenter.y));
 }
 
-Point2d CWrapper::GetVanishingPoint(vector<TLine> lines, vector<TLine>& outputLlines, TLine& normal, Point center)
+Point2f CWrapper::GetVanishingPoint(vector<TLine> lines, vector<TLine>& outputLlines, TLine& normal, Point2f center)
 {
   setCenter(center);
 
@@ -158,8 +158,8 @@ TLine CWrapper::convertLineWholeReverse(Line inputLine)
   outputLine.c = inputLine.c;
   outputLine.score = inputLine.score;
   outputLine.lineVector = Vec4f(-inputLine.b, inputLine.a, inputLine.endPoint1.x, inputLine.endPoint1.y);
-  outputLine.endPoint1 = Point2d(inputLine.endPoint1.x, inputLine.endPoint1.y);
-  outputLine.endPoint2 = Point2d(inputLine.endPoint2.x, inputLine.endPoint2.y);
+  outputLine.endPoint1 = Point2f(inputLine.endPoint1.x, inputLine.endPoint1.y);
+  outputLine.endPoint2 = Point2f(inputLine.endPoint2.x, inputLine.endPoint2.y);
 
   return outputLine;
 }

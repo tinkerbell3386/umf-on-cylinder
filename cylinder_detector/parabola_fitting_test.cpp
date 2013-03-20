@@ -8,7 +8,7 @@ using namespace std;
 
 int main(int argc, char** argv)
 {
-  vector<Point> points;
+  vector<Point2f> points;
     
   double testp = 0.01;
   double testpy0 = 50;
@@ -18,9 +18,9 @@ int main(int argc, char** argv)
     double x = rand() % 200;
     double y = testp * x * x + testpy0;
     
-    cout << "point " << i << ": " << Point((int)x, (int)y) << endl;
+    cout << "point " << i << ": " << Point2f((int)x, (int)y) << endl;
     
-    points.push_back(Point((int)x, (int)y));
+    points.push_back(Point2f((int)x, (int)y));
   }
   
   TLine centralLine = TLine(-0.999003, -0.0243787, 313.3);
@@ -29,7 +29,7 @@ int main(int argc, char** argv)
   
   CParabolaFitting* fitting = new CParabolaFitting(centralLine);
   
-  vector<Point> transfomPoints;
+  vector<Point2f> transfomPoints;
   transfomPoints.clear();
   fitting->transformPointsBack(points, transfomPoints);
 

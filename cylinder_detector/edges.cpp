@@ -69,7 +69,7 @@ void CFindEdges::scanLine(Mat line, vector<int> &edges)
   }
 }
 
-void CFindEdges::findEdges(Mat img, vector<Point> &edges)
+void CFindEdges::findEdges(Mat img, vector<Point2f> &edges)
 {
   // horizontal lines
   for(int i = scanlineStep/2; i < img.rows; i += scanlineStep) {
@@ -77,7 +77,7 @@ void CFindEdges::findEdges(Mat img, vector<Point> &edges)
     scanLine(img.row(i), indexes);
     // write founded points
     for(int j = 0; j < (int)indexes.size(); j++)
-      edges.push_back(Point(indexes[j], i));
+      edges.push_back(Point2f(indexes[j], i));
   }
 
   // vertical lines
@@ -86,6 +86,6 @@ void CFindEdges::findEdges(Mat img, vector<Point> &edges)
     // write founded points
     scanLine(img.col(i).t(), indexes);
     for(int j = 0; j < (int)indexes.size(); j++)
-      edges.push_back(Point(i, indexes[j]));
+      edges.push_back(Point2f(i, indexes[j]));
   }
 }

@@ -1,17 +1,16 @@
+#include <opencv2/imgproc/imgproc.hpp>
 #include "ellipse_ransac.h"
 
 using namespace cv;
 using namespace std;
 
 CRansacEllipse::CRansacEllipse(int _numberOfIteration,
-                               TLine _centralLine,
-                               Point2d _vanishingPoint,
+                               Point2f _vanishingPoint,
                                int _modelDistanceTrashold,
                                int _modelPyramideDistanceTreshold,
-                               double _modelAngleTreshold                             
+                               double _modelAngleTreshold  
                               ) :
   CRansac(_numberOfIteration),
-  centralLine(_centralLine),
   vanishingPoint(_vanishingPoint),
   modelDistanceTrashold(_modelDistanceTrashold),
   modelPyramideDistanceTreshold(_modelPyramideDistanceTreshold),
@@ -19,75 +18,152 @@ CRansacEllipse::CRansacEllipse(int _numberOfIteration,
 {}
 
 int CRansacEllipse::fitEllipseRANSAC(vector<TEllipse> ellipses,
-                                  vector<TEllipse>& inliers)
-{
-  vector<TEllipse> eliminatedEllipses;
-  eliminateWrongEllipses(ellipses, eliminatedEllipses);
+                                     vector<TEllipse>& inliers,
+                                     TLine& finalCentralLine,
+                                     TLine& finalBorderLine)
+{  
+  vector<TEllipse> tmpInliers;
+  tmpInliers.clear();
+  runRansac(ellipses, tmpInliers);
   
+  recomputeParams(tmpInliers);
+  
+  getFinalInliers(tmpInliers, inliers);
+  
+  recomputeParams(inliers);
+    
+  finalCentralLine = distanceLine;
+  finalBorderLine = pyramideTreeShapedLine;
+
+  //inliers = tmpInliers;
+  
+  return (int)inliers.size();
+}
+
+void  CRansacEllipse::recomputeParams(vector<TEllipse> inliers)
+{
+  TLine TmpDistanceLine, TmpElipseMainAxeLine, TmpPyramideTreeShapedLine;
+  
+  float sumA1, sumA2, sumA3, sumB1, sumB2, sumB3, sumC1, sumC2, sumC3;
+  sumA1 = sumA2 = sumA3 = sumB1 = sumB2 = sumB3 = sumC1 = sumC2 = sumC3 = 0.0;
+  
+  int sumScore = 0;
+  
+  for(int i = 0; i < (int)inliers.size(); i++)
+  {
+    TmpDistanceLine = TLine(inliers.at(i).center, vanishingPoint);
+    
+    sumA1 += TmpDistanceLine.a*inliers.at(i).score;
+    sumB1 += TmpDistanceLine.b*inliers.at(i).score;
+    sumC1 += TmpDistanceLine.c*inliers.at(i).score;
+    
+    // line trough the ellipse - main axe
+    TmpElipseMainAxeLine = TLine(inliers.at(i).center, inliers.at(i).mainEdge);
+ 
+    sumA2 += TmpElipseMainAxeLine.a*inliers.at(i).score;
+    sumB2 += TmpElipseMainAxeLine.b*inliers.at(i).score;
+    sumC2 += TmpElipseMainAxeLine.c*inliers.at(i).score;
+    
+    // tree shape line, ellipse with index 0 is origin point, new space
+    TmpPyramideTreeShapedLine = TLine(inliers.at(i).mainEdge, vanishingPoint);
+    
+    sumA3 += TmpPyramideTreeShapedLine.a*inliers.at(i).score;
+    sumB3 += TmpPyramideTreeShapedLine.b*inliers.at(i).score;
+    sumC3 += TmpPyramideTreeShapedLine.c*inliers.at(i).score;
+    
+    sumScore += inliers.at(i).score;
+  }
+  
+  distanceLine = TLine(sumA1/(inliers.size()*sumScore), 
+                       sumB1/(inliers.size()*sumScore), 
+                       sumC1/(inliers.size()*sumScore));
+  
+  elipseMainAxeLine = TLine(sumA2/(inliers.size()*sumScore), 
+                            sumB2/(inliers.size()*sumScore), 
+                            sumC2/(inliers.size()*sumScore));
+  
+  pyramideTreeShapedLine = TLine(sumA3/(inliers.size()*sumScore), 
+                                 sumB3/(inliers.size()*sumScore), 
+                                 sumC3/(inliers.size()*sumScore));
+  
+}
+
+void  CRansacEllipse::getFinalInliers(vector<TEllipse> ellipses,
+                                      vector<TEllipse>& inliers)
+{
   inliers.clear();
-  return runRansac(eliminatedEllipses, inliers);
+  //cout << "-----------------" << endl;
+  for(int i = 0; i < (int)ellipses.size(); i++)
+  {
+    if(fitRansacModel(ellipses.at(i)))
+    {
+      inliers.push_back(ellipses.at(i));
+    }
+  }
 }
 
 bool CRansacEllipse::isModel(TEllipse modelEllipse)
 {
   // pyramide criterium - lines from models
   // main line
-  pyramideDistanceLine = TLine(modelEllipse.center, vanishingPoint);
+  distanceLine = TLine(modelEllipse.center, vanishingPoint);
 
+  // line trough the ellipse - main axe
+  elipseMainAxeLine = TLine(modelEllipse.center, modelEllipse.mainEdge);
+  
   // tree shape line, ellipse with index 0 is origin point, new space
-  pyramideTreeShapedLine = TLine(Point2d(0, 0),
-                                 Point2d(modelEllipse.a,
+  
+  // line trough the ellipse - main axe
+  pyramideTreeShapedLine = TLine(modelEllipse.mainEdge, vanishingPoint);
+  
+  /*
+  pyramideTreeShapedLine = TLine(Point2f(0, 0),
+                                 Point2f(modelEllipse.a,
                                           getPointToPointDistance(
                                             vanishingPoint,
                                             modelEllipse.center
                                           )
                                         )
                                 );
-
+  */
   return true;
-}
-
-void CRansacEllipse::eliminateWrongEllipses(vector<TEllipse> inputEllipses,
-                                            vector<TEllipse>& outputEllipses) 
-{  
-  outputEllipses.clear();
-  for(int i = 0; i < (int)inputEllipses.size(); i++)
-  {
-    double distance = getDistanceLineToPointSquared(centralLine, 
-                                                    inputEllipses[i].center);
-    
-    if(distance > modelDistanceTrashold*modelDistanceTrashold)
-    {
-      continue;
-    }
-    
-    //cout << "distance: " << distance << " > " << modelPyramideDistanceTreshold*modelPyramideDistanceTreshold << endl;
-    
-    // orthogonal criterium
-    double angle = getSmallerIntersectionAngle( centralLine,
-                                                TLine(inputEllipses[i].mainEdge,
-                                                      inputEllipses[i].center)
-    );
-    
-    if(std::abs(angle - 90) > modelAngleTreshold)
-    {
-      continue;
-    } 
-    
-    //cout << "angle: " << std::abs(angle - 90) << " > " << modelAngleTreshold << endl;
-    
-    outputEllipses.push_back(inputEllipses[i]);
-  }
 }
 
 bool CRansacEllipse::fitRansacModel(TEllipse testedEllipse)
 {
+  // distance criterion
+  // check whenever center is in the correct distance from line difioned by 
+  // vanishing point and center of the selected model ellipse 
+  double distance = getDistanceLineToPointSquared(distanceLine, 
+                                                  testedEllipse.center);
+  
+  if(distance > modelDistanceTrashold*modelDistanceTrashold)
+  {
+    //cout << "Distance fall" << endl;
+    return false;
+  }  
+  
+  // orthogonal criterium
+  double angle = getSmallerIntersectionAngle( elipseMainAxeLine,
+                                              TLine(testedEllipse.mainEdge,
+                                                    testedEllipse.center)
+  );
+  
+  //cout << "angle> " << angle << endl;
+  
+  if(std::abs(angle) > modelAngleTreshold)
+  {
+    //cout << "ANGLE fall" << endl;
+    return false;
+  } 
+  
+  
   // pyramide criterium
   // intersection between distace line and its normal which goes through center
   // of tested ellipse
-  Point2d intersection = getLineIntersection(pyramideDistanceLine,
-                                             TLine(Vec4f(pyramideDistanceLine.a,
-                                                         pyramideDistanceLine.b,
+  /*Point2f intersection = getLineIntersection(distanceLine,
+                                             TLine(Vec4f(distanceLine.a,
+                                                         distanceLine.b,
                                                          testedEllipse.center.x,
                                                          testedEllipse.center.y
                                                         )
@@ -97,15 +173,20 @@ bool CRansacEllipse::fitRansacModel(TEllipse testedEllipse)
   double yCoordinate = getPointToPointDistance(vanishingPoint, 
                                                intersection);
   
-  double distance = getDistanceLineToPointSquared(pyramideTreeShapedLine, 
-                                                  Point2d(testedEllipse.a, 
+  double distancePiramide = getDistanceLineToPointSquared(pyramideTreeShapedLine, 
+                                                  Point2f(testedEllipse.a, 
                                                           yCoordinate));
-  
+  */
   //cout << "distance: " << distance << " > " << modelPyramideDistanceTreshold*modelPyramideDistanceTreshold << endl;
   
+  
+  double distancePiramide = getDistanceLineToPointSquared(pyramideTreeShapedLine, 
+                                                          testedEllipse.mainEdge);
+  
   // check distance of the ellips main point from tree line
-  if(distance > modelPyramideDistanceTreshold*modelPyramideDistanceTreshold)
+  if(distancePiramide > modelPyramideDistanceTreshold*modelPyramideDistanceTreshold)
   {
+    //cout << "distancePiramide fall" << endl;
     return false;
   }
 

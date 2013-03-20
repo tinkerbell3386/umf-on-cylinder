@@ -14,9 +14,9 @@
 using namespace cv;
 using namespace std;
 
-int scanlineStep = 20;
+int scanlineStep = 50;
 int searchStep = 10;
-int searchRadius = 3;
+int searchRadius = 5;
 
 int main(int argc, char** argv)
 {
@@ -48,13 +48,25 @@ int main(int argc, char** argv)
     cvtColor(source, gray, CV_BGR2GRAY);
 
     // detekce hran na mrizce
-    vector<Point> edges;
+    vector<Point2f> edges;
     findEdges->findEdges(gray, edges);
 
     // detekce edgelu
-    vector<vector<Point> > newEdges;
+    vector<vector<Point2f> > newEdges;
+    
+    for(int x = scanlineStep/2; x < draw.cols; x += scanlineStep)
+    {
+      line(draw, Point2f(x, 0), Point2f(x, draw.rows), Scalar(0, 255, 255), 1);
+    }
+    for(int y = scanlineStep/2; y < draw.rows; y += scanlineStep)
+    {
+      line(draw, Point2f(0, y), Point2f(draw.cols, y), Scalar(0, 255, 255), 1);
+    }
+    
     findEdgels->getEdgesFromEdgePoints(gray, edges, newEdges, draw);
-
+    
+    imshow("draw", draw);
+    
     // fittovani primek
     vector<TLine> lines;
     fitting->fitLines(newEdges, lines);
@@ -66,7 +78,7 @@ int main(int argc, char** argv)
     
     vector<TLine> linesSelected;
     TLine vanishNormal;
-    Point2d vanishPoint = wrapper->GetVanishingPoint(lines, linesSelected, vanishNormal, Point(source.cols / 2, source.rows / 2));
+    Point2f vanishPoint = wrapper->GetVanishingPoint(lines, linesSelected, vanishNormal, Point(source.cols / 2, source.rows / 2));
 
     cout << "vanishPoint: " << vanishPoint << endl;
     
@@ -118,6 +130,8 @@ int main(int argc, char** argv)
     
     drawLine(rgb3, centralLine, Scalar(255, 0, 255), 2);
     
+    drawPoint(rgb3, Point(rgb3.cols/2, rgb3.rows/2), Scalar(255, 0, 0), 10);
+    
     for(int i = 0; i < (int)linesSelected.size(); i++)
     {
       drawLine(rgb3, linesSelected[i], Scalar(255, 255, 0));
@@ -130,39 +144,46 @@ int main(int argc, char** argv)
         
     vector<TLine> finallines;
     CLineClustring* clustering = new CLineClustring(4.0);
+    
     clustering->runLinesClustering(linesSelected, finallines);
-      
+    
+    
     for(int i = 0; i < (int)finallines.size(); i++)
     {
       drawLine(rgb4, finallines[i], Scalar(255, 255, 0));
     }     
     
     delete clustering;
-
+    
+    
 ////////////////////////////////////////////////////////////////////////////////
 
     Mat rgb5;
     source.copyTo(rgb5);
     
-    drawLine(rgb5, centralLine, Scalar(255, 255, 0));
+    drawLine(rgb5, centralLine, Scalar(255, 0, 255));
     
     vector<TParabola> parabolas;
     for(int i = 0; i < (int)parabolaGroup.size(); i++)
     {
       TParabola parabola;
       
-      drawLine(rgb5, parabolaGroup.at(i), Scalar(255, 255, 0));
+      //drawLine(rgb5, parabolaGroup.at(i), Scalar(255, 255, 0));
       
       for(int j = 0; j < (int)parabolaGroup.at(i).points.size(); j++)
       {
-        //drawPoint(rgb5, Point2d(parabolaGroup.at(i).points.at(j).x, parabolaGroup.at(i).points.at(j).y), Scalar(255, 0, 255));
+        //drawPoint(rgb5, parabolaGroup.at(i).points.at(j), Scalar(255, 0, 255));
       }
       
       if(fitting->fitParabola(parabolaGroup.at(i).points, parabola, rgb5))
       {
-        cout << "apex: " << parabola.apex << endl;
-        cout << "param: " << parabola.param << endl;
-        cout << "angle: " << parabola.angle * 180 / PI << endl;
+        
+        //cout << "apex: " << parabola.apex << endl;
+        //cout << "param: " << parabola.param << endl;
+        //cout << "angle: " << parabola.angle * 180 / PI << endl;
+
+        cout << parabola.apex.y << " " << parabola.param << ";" << endl;
+        
         parabolas.push_back(parabola);
       }
     }
@@ -171,7 +192,28 @@ int main(int argc, char** argv)
     for(int i = 0; i < (int)parabolas.size(); i++)
     {
       fitting->drawParabola(rgb5, parabolas[i], Scalar(255, 255, 0));
-    }     
+    }  
+    
+////////////////////////////////////////////////////////////////////////////////  
+    
+    Mat rgb6;
+    source.copyTo(rgb6);
+    
+    drawLine(rgb6, centralLine, Scalar(255, 0, 255));
+    
+    for(int i = 0; i < (int)parabolaGroup.size(); i++)
+    {
+      vector<Point2f> tmpPoints;
+      vector<Point2f> tmpPoints2;
+      fitting->transformPointsToY(parabolaGroup.at(i).points, tmpPoints);
+      fitting->transformPointsBack(tmpPoints, tmpPoints2);
+      for(int j = 0; j < (int)parabolaGroup.at(i).points.size(); j++)
+      {
+        drawPoint(rgb6, parabolaGroup.at(i).points.at(j), Scalar(0, 255, 0));
+        drawPoint(rgb6,tmpPoints.at(j), Scalar(255, 0, 0));
+        drawPoint(rgb6,tmpPoints2.at(j), Scalar(0, 0, 255));
+      }
+    }        
         
     delete fitting;
 ////////////////////////////////////////////////////////////////////////////////
@@ -184,6 +226,7 @@ int main(int argc, char** argv)
     imshow("Output: lines after clustering", rgb4);
 
     imshow("Output: All parabolas", rgb5);
+    imshow("Output: Points", rgb6);
     
     stringstream str1;
     str1 << "all-lines" << x << ".png";
@@ -195,7 +238,10 @@ int main(int argc, char** argv)
     str4 << "clustered-lines" << x << ".png";
     
     stringstream str5;
-    str5 << "clustered-lines" << x << ".png";
+    str5 << "all-parabolas" << x << ".png";
+
+    stringstream str6;
+    str6 << "points-parabolas" << x << ".png";
     
     imwrite(str1.str(), rgb);
     imwrite(str2.str(), rgb2);
@@ -203,6 +249,7 @@ int main(int argc, char** argv)
     imwrite(str4.str(), rgb4);
    
     imwrite(str5.str(), rgb5);
+    imwrite(str6.str(), rgb6);
     
     uchar c = (uchar)waitKey();
 

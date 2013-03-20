@@ -63,7 +63,7 @@ int CRansac::getInliers(vector<TEllipse> data, TEllipse modelData,
   {
     if(fitRansacModel(data.at(i)))
     {
-      counter++;
+      counter += data.at(i).score;
       inliers.push_back(data.at(i));
     }
   }

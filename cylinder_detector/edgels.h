@@ -14,18 +14,18 @@ public:
   ~CFindEdgels(){}
 
   /**
-   * method getLinesFromEdgePoints
+   * method getLinesFromEdgePoint2fs
    *
    * Find all edge points aroun the given edge points both directions
    *
    * @param  Mat img                              source image
-   * @param  vector<Point> baseEdges              all edge point so far
-   * @param  vector<vector<Point> > &newEdges     output - new edges
+   * @param  vector<Point2f> baseEdges              all edge point so far
+   * @param  vector<vector<Point2f> > &newEdges     output - new edges
    * @param  Mat draw                             for debug drawing
    */
   void getEdgesFromEdgePoints(cv::Mat img,
-                              std::vector<cv::Point> baseEdges,
-                              std::vector<std::vector<cv::Point> > &newEdges,
+                              std::vector<cv::Point2f> baseEdges,
+                              std::vector<std::vector<cv::Point2f> > &newEdges,
                               cv::Mat &draw);
 
 private:
@@ -38,11 +38,11 @@ private:
    * Horizontal: left and right pixels
    *
    * @param  Mat img      source image
-   * @param  Point point  source point
+   * @param  Point2f point  source point
    *
    * @return  Vec2f       vector with horizontal and vertical sobel responce
    */
-  cv::Vec2f getSobelResponse(cv::Mat img, cv::Point point);
+  cv::Vec2f getSobelResponse(cv::Mat img, cv::Point2f point);
 
   /**
    * method binarySearch
@@ -53,33 +53,33 @@ private:
    * NOTE: Method expected only for edge in the interval!
    *
    * @param  Mat img                            source image
-   * @param  Point heigher                      border point with higher value
-   * @param  Point lower                        border point with lower value
+   * @param  Point2f heigher                      border point with higher value
+   * @param  Point2f lower                        border point with lower value
    *
-   * @return  Point                             edge point
+   * @return  Point2f                             edge point
    */
-  cv::Point binarySearch(cv::Mat img,
-                     cv::Point heigher,
-                     cv::Point lower,
+  cv::Point2f binarySearch(cv::Mat img,
+                     cv::Point2f heigher,
+                     cv::Point2f lower,
                      const int edgeTreshold,
                      cv::Mat &draw);
 
   /**
-   * method getNewPoints
+   * method getNewPionts
    *
    * Locates edge points around the given base edge point
    *
    * @param  Mat img                            source image
-   * @param  Point originPoint                  origin point
+   * @param  Point2f originPoint                  origin point
    * @param  Vec2f shiftVector                  shift vector
-   * @param  vector<Point> &newEdges            output - new edges
+   * @param  vector<Point2f> &newEdges            output - new edges
    * @param  Mat draw                           for debug drawing
    */
   void getNewPoints(cv::Mat img,
-                    cv::Point originPoint,
+                    cv::Point2f originPoint,
                     cv::Vec2f shiftVector,
-                    std::vector<cv::Point> &newEdges,
-                    cv::Mat &draw);
+                    std::vector<cv::Point2f> &newEdges,
+                    cv::Mat &draw, cv::Scalar color);
 
   /**
    * method getEdgePoint
@@ -90,16 +90,16 @@ private:
    * NOTE: Method expected only one edge in the interval!
    *
    * @param  Mat img                            source image
-   * @param  Point basePoint                    base point
+   * @param  Point2f basePoint                    base point
    * @param  Vec2f shiftVector                  shift vector
-   * @param  Point &edge                        output - new edge point
+   * @param  Point2f &edge                        output - new edge point
    *
    * @return  bool                               true when edge is found
    */
   bool getEdgePoint(cv::Mat img,
-                    cv::Point basePoint,
+                    cv::Point2f basePoint,
                     cv::Vec2f shiftVector,
-                    cv::Point &edge,
+                    cv::Point2f &edge,
                     cv::Mat &draw);
 
   int searchStep;

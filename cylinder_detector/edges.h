@@ -21,7 +21,7 @@ public:
    * @param  vector<Point> &edges         output - vector with edges
    * @param  const int scanlineStep       step between scan lines
    */
-  void findEdges(cv::Mat img, std::vector<cv::Point>& edges);
+  void findEdges(cv::Mat img, std::vector<cv::Point2f>& edges);
 
   int adaptiveThreshold;
   int scanlineStep;

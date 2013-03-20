@@ -12,12 +12,12 @@ public:
   CWrapper();
   ~CWrapper(){};
 
-  void setCenter(cv::Point imageCenter);
+  void setCenter(cv::Point2f imageCenter);
   int getLineGroups(std::vector<TLine> lines, std::vector<TLine>& linesGroup, std::vector<TLine>& linesGroup2);
 
-  cv::Point2d GetVanishingPoint(std::vector<TLine> lines, 
+  cv::Point2f GetVanishingPoint(std::vector<TLine> lines, 
                                 std::vector<TLine>& outputLlines, 
-                                TLine& normal, cv::Point center);
+                                TLine& normal, cv::Point2f center);
 
   Line convertLineBase(TLine inputLine);
   Line convertLineWhole(TLine inputLine);
@@ -27,7 +27,7 @@ public:
 
 private:
   TLine refLines[4];
-  cv::Point imageCenter;
+  cv::Point2f imageCenter;
 };
 
 

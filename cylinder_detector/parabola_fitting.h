@@ -22,17 +22,17 @@ public:
   CParabolaFitting(TLine centralLine);
   ~CParabolaFitting(){}
 
-  bool fitParabola(std::vector<cv::Point> points, TParabola& parabola, cv::Mat draw);
+  bool fitParabola(std::vector<cv::Point2f> points, TParabola& parabola, cv::Mat draw);
   void drawParabola(cv::Mat& img, TParabola parabola, cv::Scalar color, 
                     int thickness = 1);
   
-  cv::Point2d transformPointBack(cv::Point input);
+  cv::Point2f transformPointBack(cv::Point2f input);
   
-  void transformPointsToY(std::vector<cv::Point> input, 
-                          std::vector<cv::Point2d>& output);
+  void transformPointsToY(std::vector<cv::Point2f> input, 
+                          std::vector<cv::Point2f>& output);
   
-  void transformPointsBack(std::vector<cv::Point> input, 
-                           std::vector<cv::Point>& output);
+  void transformPointsBack(std::vector<cv::Point2f> input, 
+                           std::vector<cv::Point2f>& output);
   
 private:
   void getAngleAndOrigin(TLine line);
@@ -40,7 +40,7 @@ private:
   
   cv::Mat transformationMatrix;
   cv::Mat transformationMatrixInverse;
-  cv::Point2d origin;
+  cv::Point2f origin;
   double angle;
 };
 

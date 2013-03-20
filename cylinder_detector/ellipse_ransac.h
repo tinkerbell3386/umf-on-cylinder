@@ -29,8 +29,7 @@ public:
    * @param     int _modelTrashold              treshold for line model
    */
   CRansacEllipse(int _numberOfIteration,
-                 TLine _centralLine,
-                 cv::Point2d _vanishingPoint,
+                 cv::Point2f _vanishingPoint,
                  int _modelDistanceTrashold  = 20,
                  int _modelPyramideDistanceTreshold  = 20,
                  double _modelAngleTreshold = 5.0
@@ -50,11 +49,9 @@ public:
    * @result    bool                                    number of inliers
    */
   int fitEllipseRANSAC(std::vector<TEllipse> ellipses,
-                     std::vector<TEllipse>& inliers);
-
-  
-  void eliminateWrongEllipses(std::vector<TEllipse> inputEllipses,
-                              std::vector<TEllipse>& outputEllipses);
+                       std::vector<TEllipse>& inliers,
+                       TLine& finalCentralLine,
+                       TLine& finalBorderLine);
   
 protected:
 
@@ -81,17 +78,23 @@ protected:
    */
   virtual bool isModel(TEllipse modelEllipses);
 
-  //private:
+private:
+  void recomputeParams(std::vector<TEllipse> inliers);
+  
+  void  getFinalInliers(std::vector<TEllipse> ellipses,
+                        std::vector<TEllipse>& inliers);
+  
 public:
   TLine centralLine;
-  cv::Point2d vanishingPoint;
+  cv::Point2f vanishingPoint;
   
   int modelDistanceTrashold;    // treshold for line centers criterium
   int modelPyramideDistanceTreshold;
   double modelAngleTreshold;
 
-  TLine pyramideDistanceLine;
+  TLine distanceLine;
   TLine pyramideTreeShapedLine;
+  TLine elipseMainAxeLine;
 };
 
 #endif // DP_LINE_RANSAC__H

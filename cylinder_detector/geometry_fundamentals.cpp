@@ -6,7 +6,7 @@
 using namespace cv;
 using namespace std;
 
-TEllipse::TEllipse(RotatedRect _boundingBox, int _score)
+TEllipse::TEllipse(RotatedRect _boundingBox, cv::Point2f borderPoint, int _score)
 {
   boundingBox = _boundingBox;
 
@@ -28,19 +28,45 @@ TEllipse::TEllipse(RotatedRect _boundingBox, int _score)
   if( getPointToPointDistanceSquared(vertices[0], vertices[1]) >
       getPointToPointDistanceSquared(vertices[1], vertices[2]))
   {
-    mainEdge = Point2d(vertices[1].x + (vertices[2].x - vertices[1].x) / 2,
+    mainEdge = Point2f(vertices[1].x + (vertices[2].x - vertices[1].x) / 2,
                        vertices[1].y + (vertices[2].y - vertices[1].y) / 2);
 
-    secondaryEdge = Point2d(vertices[0].x + (vertices[1].x - vertices[0].x) / 2,
-                            vertices[0].y + (vertices[1].y - vertices[0].y) / 2);
+    Point2f secondaryEdge1 = Point2f( vertices[0].x + (vertices[1].x - vertices[0].x) / 2,
+                                      vertices[0].y + (vertices[1].y - vertices[0].y) / 2);
+    
+    Point2f secondaryEdge2 = Point2f( vertices[3].x + (vertices[2].x - vertices[3].x) / 2,
+                                      vertices[3].y + (vertices[2].y - vertices[3].y) / 2);
+    
+    if( getPointToPointDistanceSquared(secondaryEdge1, borderPoint) <
+        getPointToPointDistanceSquared(secondaryEdge2, borderPoint))
+    {
+      secondaryEdge = secondaryEdge1;
+    }
+    else
+    {
+      secondaryEdge = secondaryEdge2;
+    }
   }
   else
   {
-    secondaryEdge = Point2d(vertices[1].x + (vertices[2].x - vertices[1].x) / 2,
-                            vertices[1].y + (vertices[2].y - vertices[1].y) / 2);
-
-    mainEdge = Point2d(vertices[0].x + (vertices[1].x - vertices[0].x) / 2,
+    mainEdge = Point2f(vertices[0].x + (vertices[1].x - vertices[0].x) / 2,
                        vertices[0].y + (vertices[1].y - vertices[0].y) / 2);
+
+    Point2f secondaryEdge1 = Point2f( vertices[1].x + (vertices[2].x - vertices[1].x) / 2,
+                                      vertices[1].y + (vertices[2].y - vertices[1].y) / 2);
+
+    Point2f secondaryEdge2 = Point2f( vertices[0].x + (vertices[3].x - vertices[0].x) / 2,
+                                      vertices[0].y + (vertices[3].y - vertices[0].y) / 2);
+    
+    if( getPointToPointDistanceSquared(secondaryEdge1, borderPoint) <
+      getPointToPointDistanceSquared(secondaryEdge2, borderPoint))
+    {
+      secondaryEdge = secondaryEdge1;
+    }
+    else
+    {
+      secondaryEdge = secondaryEdge2;
+    }
   }
 
   center = _boundingBox.center;
@@ -78,7 +104,7 @@ TLine::TLine(double _a, double _b, double _c, int _score)
   deviation = 0;
 }
 
-TLine::TLine(cv::Point2d pt1, cv::Point2d pt2, int _score)
+TLine::TLine(cv::Point2f pt1, cv::Point2f pt2, int _score)
 {
   // againts division by 0
   assert(pt1 != pt2);
@@ -99,34 +125,35 @@ TLine::TLine(cv::Point2d pt1, cv::Point2d pt2, int _score)
   deviation = 0;
 }
 
-TParabola::TParabola(Point2d _apex, double _param, double _angle, int _score)
+TParabola::TParabola(Point2f _apex, double _param, double _angle, double _origin, int _score)
 {
   apex = _apex;
   param = _param;
   angle = _angle;
+  origin = _origin;
   score = _score;
 }
 
-Point2d getLineIntersection(TLine p, TLine q)
+Point2f getLineIntersection(TLine p, TLine q)
 {
-  return Point2d( (-p.c*q.b + p.b*q.c)/(p.a*q.b - p.b*q.a),
+  return Point2f( (-p.c*q.b + p.b*q.c)/(p.a*q.b - p.b*q.a),
                   (-p.a*q.c + p.c*q.a)/(p.a*q.b - p.b*q.a));
 }
 
-double getPointToPointDistanceSquared(Point2d a, Point2d b)
+double getPointToPointDistanceSquared(Point2f a, Point2f b)
 {
   return (a.x-b.x)*(a.x-b.x)+(a.y-b.y)*(a.y-b.y);
 }
 
-double getPointToPointDistance(Point2d a, Point2d b)
+double getPointToPointDistance(Point2f a, Point2f b)
 {
   return std::sqrt(getPointToPointDistanceSquared(a, b));
 }
 
-double getDistanceLineToPointSquared(TLine baseLine, Point2d point)
+double getDistanceLineToPointSquared(TLine baseLine, Point2f point)
 {
   TLine lineFromPoint(Vec4f(baseLine.a, baseLine.b, point.x, point.y));
-  Point2d intersection = getLineIntersection(baseLine, lineFromPoint);
+  Point2f intersection = getLineIntersection(baseLine, lineFromPoint);
   return getPointToPointDistanceSquared(point, intersection);
 }
 
@@ -159,7 +186,7 @@ void drawLine(Mat& img, TLine newLine, Scalar color, int thickness)
 */
 }
 
-void drawPoint(Mat& img, Point2d point, Scalar color, int size)
+void drawPoint(Mat& img, Point2f point, Scalar color, int size)
 {
   line(img, Point(point.x + size, point.y), Point(point.x - size, point.y), color);
   line(img, Point(point.x, point.y + size), Point(point.x, point.y - size), color);
@@ -205,31 +232,36 @@ TLine lineNormalization(TLine inputLine)
 
 double getSmallerIntersectionAngle(TLine line1, TLine line2)
 {
+  double dot = (line1.a * line2.a + line1.b * line2.b);
+  
+  double size1 = std::sqrt(line1.a * line1.a + line1.b * line1.b);
+  double size2 = std::sqrt(line2.a * line2.a + line2.b * line2.b);
+  
   //skalarni soucin 2 jednotkovych vectoru je cosinus uhlu mezni nimi
-  double angle = acos(line1.a * line2.a + line1.b * line2.b) * 180.0 / PI;
-
+  double angle = (std::acos(dot/(size1*size2)) * 180.0) / PI;
+  
   if(angle > 270.0)
   {
     return 360.0 - angle;
-  }
+  }  
   else if(angle > 180.0)
   {
     return angle - 180;
-  }
-  if(angle > 90.0)
+  }  
+  else if(angle > 90.0)
   {
     return 180.0 - angle;
   }
   return angle;
 }
 
-Point2d rotatePoint(Point2d point, Point2d origin, double angle)
+Point2f rotatePoint(Point2f point, Point2f origin, double angle)
 {
   // posun do pocatku souradnic
   double TmpX = point.x - origin.x;
   double TmpY = point.y - origin.y;
 
-  Point2d newPoint;
+  Point2f newPoint;
 
   // rotace
   newPoint.x = TmpX * cos(angle) - TmpY * sin(angle);
