@@ -108,6 +108,11 @@ int main(int argc, char** argv)
       drawLine(rgb2, linesGrouped[i], Scalar(255, 255, 0));
     }
     
+    // points, all ellipses    
+    for(int i = 0; i < (int)linesGrouped2.size(); i++)
+    {
+      drawLine(rgb2, linesGrouped2[i], Scalar(0, 255, 255));
+    }
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -118,7 +123,7 @@ int main(int argc, char** argv)
     
     for(int i = 0; i < (int)linesSelected.size(); i++)
     {
-      drawLine(rgb3, linesSelected[i], Scalar(255, 255, 0));
+      drawLine(rgb3, linesSelected.at(i), Scalar(255, 255, 0));
     }     
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -138,7 +143,7 @@ int main(int argc, char** argv)
     
     // points, all ellipses
     int inliersNumber;
-    CRansacEllipse* ransac = new CRansacEllipse(500, vanishPoint, 10, 10, 3.0);
+    CRansacEllipse* ransac = new CRansacEllipse(100, vanishPoint, 10, 10, 3.0);
     vector<TEllipse> inliers;  
     TLine cylinderCentralLine, pyramideLine;
     inliersNumber = ransac->fitEllipseRANSAC(ellipses, inliers, cylinderCentralLine, pyramideLine);
@@ -186,8 +191,10 @@ int main(int argc, char** argv)
     Mat rgb4;
     source.copyTo(rgb4);
     
+    
     vector<TLine> finallines;
     CLineClustring* clustering = new CLineClustring(4.0, cylinderCentralLine, pyramideLine);
+    cout << "number of selectedLines:: " << linesSelected.size() << endl; 
     clustering->runLinesClustering(linesSelected, finallines);
     
     for(int i = 0; i < (int)finallines.size(); i++)

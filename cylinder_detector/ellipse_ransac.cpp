@@ -104,7 +104,6 @@ void  CRansacEllipse::getFinalInliers(vector<TEllipse> ellipses,
 
 bool CRansacEllipse::isModel(TEllipse modelEllipse)
 {
-  // pyramide criterium - lines from models
   // main line
   distanceLine = TLine(modelEllipse.center, vanishingPoint);
 
@@ -112,8 +111,6 @@ bool CRansacEllipse::isModel(TEllipse modelEllipse)
   elipseMainAxeLine = TLine(modelEllipse.center, modelEllipse.mainEdge);
   
   // tree shape line, ellipse with index 0 is origin point, new space
-  
-  // line trough the ellipse - main axe
   pyramideTreeShapedLine = TLine(modelEllipse.mainEdge, vanishingPoint);
   
   /*
@@ -179,15 +176,20 @@ bool CRansacEllipse::fitRansacModel(TEllipse testedEllipse)
   */
   //cout << "distance: " << distance << " > " << modelPyramideDistanceTreshold*modelPyramideDistanceTreshold << endl;
   
+  Point2f tmpCenter = getLineIntersection(distanceLine, TLine(testedEllipse.mainEdge,
+                                                              testedEllipse.center));
+  
+  cout << "tmpCenter: " << tmpCenter << endl;
   
   double distancePyramide = getDistanceLineToPointSquared(pyramideTreeShapedLine, 
-                                                          testedEllipse.mainEdge);
+                                                          tmpCenter);
+  cout << "distancePyramide: " << distancePyramide << endl;
+  distancePyramide = std::abs(testedEllipse.a * testedEllipse.a - distancePyramide);
   
-  // TODO: moznost
-  // pouzit delku hlavni poloosy - pokud sedi uhel, tak delka polosy musi odpovidat
+  cout << "distancePyramide: " << distancePyramide << endl;
   
   // check distance of the ellips main point from tree line
-  if(distancePyramide > modelPyramideDistanceTreshold*modelPyramideDistanceTreshold)
+  if(distancePyramide > 2500)
   {
     //cout << "distancePiramide fall" << endl;
     return false;
