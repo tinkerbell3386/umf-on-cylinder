@@ -180,11 +180,14 @@ bool CRansacEllipse::fitRansacModel(TEllipse testedEllipse)
   //cout << "distance: " << distance << " > " << modelPyramideDistanceTreshold*modelPyramideDistanceTreshold << endl;
   
   
-  double distancePiramide = getDistanceLineToPointSquared(pyramideTreeShapedLine, 
+  double distancePyramide = getDistanceLineToPointSquared(pyramideTreeShapedLine, 
                                                           testedEllipse.mainEdge);
   
+  // TODO: moznost
+  // pouzit delku hlavni poloosy - pokud sedi uhel, tak delka polosy musi odpovidat
+  
   // check distance of the ellips main point from tree line
-  if(distancePiramide > modelPyramideDistanceTreshold*modelPyramideDistanceTreshold)
+  if(distancePyramide > modelPyramideDistanceTreshold*modelPyramideDistanceTreshold)
   {
     //cout << "distancePiramide fall" << endl;
     return false;
