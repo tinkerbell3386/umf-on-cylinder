@@ -58,7 +58,7 @@ Point2f CFindEdgels::binarySearch(Mat img,
     //new middle value
     middleValue = img.at<uchar>(middle.y, middle.x);
 
-    // when there is only one pixel betwwen borders
+    // when there is only one pixel between borders
     int dx = lower.x - heigher.x;
     int dy = lower.y - heigher.y;
 

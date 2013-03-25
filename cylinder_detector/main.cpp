@@ -4,12 +4,15 @@
 
 #include "edges.h"
 #include "edgels.h"
-#include "fitting.h"
-#include "fitting_line.h"
-#include "ellipse_ransac.h"
+#include "lines_fitting.h"
+#include "ellipses_fitting.h"
+#include "ellipses_ransac.h"
 #include "umf_wrapper.h"
 #include "lines_clustering.h"
-#include "ellipse_clustering.h"
+#include "ellipses_clustering.h"
+#include "parabolas_fitting.h"
+#include "parabolas_ransac.h"
+#include "parabolas_clustering.h"
 
 using namespace cv;
 using namespace std;
@@ -22,8 +25,8 @@ int main(int argc, char** argv)
 {
   CFindEdges* findEdges = new CFindEdges(scanlineStep, 15, 25);
   CFindEdgels* findEdgels = new CFindEdgels(searchStep, searchRadius, 25);
-  CLineAndEllipseFitting* fitting2 = new CLineAndEllipseFitting();
-  CFittingLine* fitting = new CFittingLine();
+  CFittingLine* lineFitting = new CFittingLine();
+  CEllipseFitting* ellipseFitting = new CEllipseFitting();
   CWrapper* wrapper = new CWrapper();
   
   for(int x = 1; x < 1000; x++) {
@@ -54,32 +57,22 @@ int main(int argc, char** argv)
     // detekce edgelu
     vector<vector<Point2f> > newEdges;   
     findEdgels->getEdgesFromEdgePoints(gray, edges, newEdges, draw);
-        
-    // fittovani elips a primek
-    fitting2->setSizeThreslods(source.size());
-    //vector<TLine> lines;
-    vector<TEllipse> ellipses;
-    //fitting->fitLinesOrEllipse(newEdges, ellipses, lines);
     
     // fittovani primek
     vector<TLine> lines;
-    fitting->fitLines(newEdges, lines);
+    lineFitting->fitLines(newEdges, lines);
     
+    // 2 main lines direction location
     vector<TLine> linesGrouped;
     vector<TLine> linesGrouped2;
     wrapper->setCenter(Point2f(source.cols / 2, source.rows / 2));
     wrapper->getLineGroups(lines, linesGrouped, linesGrouped2);
     
-    for(int i = 0; i < (int)linesGrouped2.size(); i++)
-    {
-      TEllipse newEllipse;
-      if(fitting2->fitEllipseFromPoints(linesGrouped2.at(i).points, newEllipse))
-      {
-        newEllipse.points = linesGrouped2.at(i).points;
-        ellipses.push_back(newEllipse);
-      }
-    }    
+    // fitting ellipses
+    vector<TEllipse> ellipses;
+    ellipseFitting->fitEllipsesFromLines(linesGrouped2, ellipses);
  
+    // location of vanishing point and lines correction
     vector<TLine> linesSelected;
     TLine vanishNormal;
     Point2f vanishPoint = wrapper->GetVanishingPoint(lines, linesSelected, vanishNormal, Point2f(source.cols / 2, source.rows / 2));
@@ -194,7 +187,7 @@ int main(int argc, char** argv)
     
     vector<TLine> finallines;
     CLineClustring* clustering = new CLineClustring(4.0, cylinderCentralLine, pyramideLine);
-    cout << "number of selectedLines:: " << linesSelected.size() << endl; 
+    cout << "number of selectedLines: " << linesSelected.size() << endl; 
     clustering->runLinesClustering(linesSelected, finallines);
     
     for(int i = 0; i < (int)finallines.size(); i++)
@@ -202,22 +195,95 @@ int main(int argc, char** argv)
       drawLine(rgb4, finallines[i], Scalar(255, 255, 0));
     }     
     
-
     ////////////////////////////////////////////////////////////////////////////////   
     
+    Mat rgb9;
+    source.copyTo(rgb9);
+    
+    CParabolaFitting* parabolaFitting = new CParabolaFitting(cylinderCentralLine);
+    
+    drawLine(rgb9, centralLine, Scalar(255, 0, 255));
+    
+    vector<TParabola> parabolas;
+    for(int i = 0; i < (int)linesGrouped2.size(); i++)
+    {
+      TParabola parabola;
+      
+      for(int j = 0; j < (int)linesGrouped2.at(i).points.size(); j++)
+      {
+        //drawPoint(rgb5, parabolaGroup.at(i).points.at(j), Scalar(255, 0, 255));
+      }
+      
+      if(parabolaFitting->fitParabola(linesGrouped2.at(i).points, parabola, rgb9))
+      {
+        
+        //cout << "apex: " << parabola.apex << endl;
+        //cout << "param: " << parabola.param << endl;
+        //cout << "angle: " << parabola.angle * 180 / PI << endl;
+        
+        cout << parabola.apex.y << " " << parabola.param << ";" << endl;
+        
+        parabolas.push_back(parabola);
+      }
+    }
+    
+    for(int i = 0; i < (int)parabolas.size(); i++)
+    {
+      parabolaFitting->drawParabola(rgb9, parabolas.at(i), Scalar(255, 255, 0));
+    }  
+    
+    ////////////////////////////////////////////////////////////////////////////////   
+    
+    Mat rgb10;
+    source.copyTo(rgb10);
+        
+    CRansacParabola* parabolaRansac = new CRansacParabola(100, 5e-4);
+    vector<TParabola> inliersParabola;
+    inliersNumber = parabolaRansac->fitParabolaRANSAC(parabolas, inliersParabola);
+    
+    cout << "Number of inliers: " << inliersNumber << endl;
+    
+    for(int i = 0; i < (int)inliersParabola.size(); i++)
+    {
+      parabolaFitting->drawParabola(rgb10, inliersParabola.at(i), Scalar(255, 255, 0));
+    }
+    
+    ////////////////////////////////////////////////////////////////////////////////   
+
+    Mat rgb11;
+    source.copyTo(rgb11);
+    
+    CParabolaClustring* parabolaClustring = new CParabolaClustring(20);
+    vector<TParabola> clusteredParabola;
+    parabolaClustring->runParabolasClustering(inliersParabola, clusteredParabola);
+        
+    for(int i = 0; i < (int)clusteredParabola.size(); i++)
+    {
+      parabolaFitting->drawParabola(rgb11, clusteredParabola.at(i), Scalar(255, 255, 0));
+    }
+    
+    ////////////////////////////////////////////////////////////////////////////////     
+    
+    delete parabolaFitting;
     delete ransac;
     delete clustering;
+    delete parabolaRansac;
+    delete parabolaClustring;
     
     cout << "-------" << x << "-------" << endl;
 
-    imshow("Output: All lines", rgb);
+    /*imshow("Output: All lines", rgb);
     imshow("Output: Lines grouped by direction", rgb2);
     imshow("Output: Lines after fitting vanishing point", rgb3);
     imshow("Output: lines after clustering", rgb4);
-
+*/
     imshow("Output: All ellipses", rgb5);
     imshow("Output: Ellipses after RANSAC", rgb7);
     imshow("Output: Ellipses after clustering", rgb8);
+    
+    imshow("Output: Parabolas", rgb9);
+    imshow("Output: Parabolas ransac", rgb10);
+    imshow("Output: Parabolas clustering", rgb11);
     
     stringstream str1;
     str1 << "all-lines" << x << ".png";
@@ -234,6 +300,13 @@ int main(int argc, char** argv)
     str7 << "ransac-ellipses" << x << ".png";
     stringstream str8;
     str8 << "clustering-ellipses" << x << ".png";
+
+    stringstream str9;
+    str9 << "parabolas-all" << x << ".png";
+    stringstream str10;
+    str10 << "parabolas-ransac" << x << ".png";
+    stringstream str11;
+    str11 << "parabolas-clustering" << x << ".png";
     
     imwrite(str1.str(), rgb);
     imwrite(str2.str(), rgb2);
@@ -243,6 +316,10 @@ int main(int argc, char** argv)
     imwrite(str5.str(), rgb5);
     imwrite(str7.str(), rgb7);
     imwrite(str8.str(), rgb8);
+    
+    imwrite(str9.str(), rgb9);
+    imwrite(str10.str(), rgb10);
+    imwrite(str11.str(), rgb11);
     
     uchar c = (uchar)waitKey();
 
@@ -254,8 +331,8 @@ int main(int argc, char** argv)
 
   delete findEdges;
   delete findEdgels;
-  delete fitting;
-  delete fitting2;
+  delete lineFitting;
+  delete ellipseFitting;
   
   return 0;
 }

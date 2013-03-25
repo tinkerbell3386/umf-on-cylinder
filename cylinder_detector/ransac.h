@@ -14,6 +14,8 @@
  *
  * @author Radim Kriz (xkrizr03@stud.fit.vutbr.cz)
  */
+
+template<typename T>
 class CRansac
 {
 public:
@@ -27,7 +29,7 @@ public:
    * @param     int _numberOfModelData          number of data fits the model
    * @param     int _numberOfIteration          number of iteration
    */
-  CRansac(int _numberOfIteration);
+  CRansac(int _numberOfIteration, int _numberOfModelData);
 
   ~CRansac(){}
 
@@ -41,7 +43,7 @@ public:
    *
    * @result    int                                     number of inliers
    */
-  int runRansac(std::vector<TEllipse> data, std::vector<TEllipse>& inliers);
+  int runRansac(std::vector<T> data, std::vector<T>& inliers);
 
   int wrongModels;      // counts number of wrong models
 
@@ -57,7 +59,7 @@ protected:
    *
    * @result    bool                                    true if "x" fits model
    */
-  virtual bool fitRansacModel(TEllipse testedEllipse) = 0;
+  virtual bool fitRansacModel(T testedEllipse) = 0;
   /**
    * pure virtual method isModel
    *
@@ -67,7 +69,7 @@ protected:
    *
    * @result    bool                                    correct model data
    */
-  virtual bool isModel(TEllipse modelEllipses) = 0;
+  virtual bool isModel(std::vector<T> modelEllipses) = 0;
 
 private:
 
@@ -81,8 +83,8 @@ private:
    *
    * @result    bool                                    true if select correctly
    */
-  bool getRandomData(std::vector<TEllipse> data,
-                     TEllipse& modelData);
+  bool getRandomData(std::vector<T> data,
+                     std::vector<T>& modelData);
 
   /**
    * method getInliers
@@ -95,12 +97,106 @@ private:
    *
    * @result    int                                     number of inliers
    */
-  int getInliers(std::vector<TEllipse> data,
-                 TEllipse modelData,
-                 std::vector<TEllipse>& inliers);
+  int getInliers(std::vector<T> data,
+                 std::vector<T> modelData,
+                 std::vector<T>& inliers);
 
   int numberOfIteration;
+  int numberOfModelData;
+  
   std::default_random_engine randomGenerator;
 };
+
+template <typename T>
+CRansac<T>::CRansac(int _numberOfIteration, int _numberOfModelData) :
+wrongModels(0),
+numberOfIteration(_numberOfIteration),
+numberOfModelData(_numberOfModelData)
+{
+  ;
+}
+
+template <typename T>
+int CRansac<T>::runRansac(std::vector<T> data, std::vector<T>& inliers)
+{
+  int bestResult = 0;
+  for(int i = 0; i < numberOfIteration; i++)
+  {
+    std::vector<T> modelData;
+    std::vector<T> temporaryInliers;
+    
+    if(!getRandomData(data, modelData))
+      break;
+    
+    int temporaryResult;
+    temporaryResult = getInliers(data, modelData, temporaryInliers);
+    
+    if(temporaryResult > bestResult)
+    {
+      bestResult = temporaryResult;
+      inliers = temporaryInliers;
+    }
+  }
+  
+  return bestResult;
+}
+
+template <typename T>
+bool CRansac<T>::getRandomData(std::vector<T> data, std::vector<T>& modelData)
+{
+  if((int) data.size() < 1)
+  {
+    std::cerr << "ERROR: There is no data in the dataset." << std::endl;
+    return false;
+  }
+  
+  std::uniform_int_distribution<int> uniformDistribution(0, data.size()-1);
+  std::vector<int> duplicitycontrol;
+  bool duplicitTest;
+  for(int i = 0; i< numberOfModelData; i++)
+  {
+    int pos = uniformDistribution(randomGenerator);
+    duplicitTest = false;
+    for(int j = 0; j < (int)duplicitycontrol.size(); j++)
+    {
+      if(duplicitycontrol.at(j) == pos)
+      {
+        i--;
+        duplicitTest = true;
+      }
+    }
+    if(!duplicitTest)
+    {
+      duplicitycontrol.push_back(pos);
+      modelData.push_back(data.at(pos));
+    }
+  }
+  
+  return true;
+}
+
+template <typename T>
+int CRansac<T>::getInliers(std::vector<T> data, std::vector<T> modelData,
+                           std::vector<T>& inliers)
+{
+  int counter = 0;
+  
+  if(!isModel(modelData))
+  {
+    std::cerr << "WARNING: Cannot fit model from given model data." << std::endl;
+    wrongModels++;
+    return counter;
+  }
+  
+  for(int i = 0; i < (int)data.size(); i++)
+  {
+    if(fitRansacModel(data.at(i)))
+    {
+      counter += data.at(i).score;
+      inliers.push_back(data.at(i));
+    }
+  }
+  return counter;
+}
 
 #endif // DP_RANSAC_H

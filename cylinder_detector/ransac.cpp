@@ -1,20 +1,23 @@
-#include "ransac.h"
+/*#include "ransac.h"
 
 using namespace std;
 
-CRansac::CRansac(int _numberOfIteration) :
+template <class T>
+CRansac<T>::CRansac(int _numberOfIteration) :
         wrongModels(0),
         numberOfIteration(_numberOfIteration)
-{}
+{
+  ;
+}
 
-
-int CRansac::runRansac(vector<TEllipse> data, vector<TEllipse>& inliers)
+template <class T>
+int CRansac<T>::runRansac(vector<T> data, vector<T>& inliers)
 {
   int bestResult = 0;
   for(int i = 0; i < numberOfIteration; i++)
   {
-    TEllipse modelData;
-    vector<TEllipse> temporaryInliers;
+    T modelData;
+    vector<T> temporaryInliers;
 
     if(!getRandomData(data, modelData))
       break;
@@ -32,7 +35,8 @@ int CRansac::runRansac(vector<TEllipse> data, vector<TEllipse>& inliers)
   return bestResult;
 }
 
-bool CRansac::getRandomData(vector<TEllipse> data, TEllipse& modelData)
+template <class T>
+bool CRansac<T>::getRandomData(vector<T> data, T& modelData)
 {
   if((int) data.size() < 1)
   {
@@ -47,8 +51,9 @@ bool CRansac::getRandomData(vector<TEllipse> data, TEllipse& modelData)
   return true;
 }
 
-int CRansac::getInliers(vector<TEllipse> data, TEllipse modelData,
-                        vector<TEllipse>& inliers)
+template <class T>
+int CRansac<T>::getInliers(vector<T> data, T modelData,
+                           vector<T>& inliers)
 {
   int counter = 0;
 
@@ -69,3 +74,4 @@ int CRansac::getInliers(vector<TEllipse> data, TEllipse modelData,
   }
   return counter;
 }
+*/
