@@ -165,7 +165,7 @@ int main(int argc, char** argv)
     source.copyTo(rgb8);   
     
     vector<TEllipse> finalEllipses;
-    CEllipseClustring* clusteringellipse = new CEllipseClustring(4.0);
+    CEllipseClustring* clusteringellipse = new CEllipseClustring();
     clusteringellipse->runEllipsesClustering(inliers, finalEllipses);
     
     for(int i = 0; i < (int)finalEllipses.size(); i++)
@@ -186,7 +186,7 @@ int main(int argc, char** argv)
     
     
     vector<TLine> finallines;
-    CLineClustring* clustering = new CLineClustring(4.0, cylinderCentralLine, pyramideLine);
+    CLineClustring* clustering = new CLineClustring(cylinderCentralLine, pyramideLine);
     cout << "number of selectedLines: " << linesSelected.size() << endl; 
     clustering->runLinesClustering(linesSelected, finallines);
     
@@ -253,7 +253,7 @@ int main(int argc, char** argv)
     Mat rgb11;
     source.copyTo(rgb11);
     
-    CParabolaClustring* parabolaClustring = new CParabolaClustring(20);
+    CParabolaClustring* parabolaClustring = new CParabolaClustring();
     vector<TParabola> clusteredParabola;
     parabolaClustring->runParabolasClustering(inliersParabola, clusteredParabola);
         

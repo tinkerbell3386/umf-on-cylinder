@@ -4,7 +4,8 @@
 using namespace std;
 using namespace cv;
 
-void CFittingLine::fitLines(vector<vector<Point2f> > points, vector<TLine>& lines)
+void CFittingLine::fitLines(vector<vector<Point2f> > points, 
+                            vector<TLine>& lines)
 {
   lines.clear();
   for(int i = 0; i < (int)points.size(); i++)
@@ -29,8 +30,8 @@ bool CFittingLine::fitLineFromPoints(vector<Point2f> points, TLine& newLine)
   fitLine(points, fittedLine, CV_DIST_L2, 0, 0.01, 0.01);
   
   newLine = TLine(fittedLine, points.size());
-  //newLine = TLine(points.at(points.size() - 1), points.at(points.size() - 2), points.size());
   
+  // calculation of mean standart deviation
   CStdDev* stdDev = new CStdDev();
   
   for(int i = 0; i < (int)points.size(); i++)
@@ -38,11 +39,9 @@ bool CFittingLine::fitLineFromPoints(vector<Point2f> points, TLine& newLine)
     stdDev->Push(getDistanceLineToPointSquared(newLine, points.at(i)));
   }
   
-  newLine.deviation = stdDev->StandardDeviation();
+  newLine.deviation = stdDev->StandardDeviation() / points.size();
   
   delete stdDev;
-  
-  //newLine = TLine(points.at(points.size() - 1), points.at(points.size() - 2), points.size());
   
   newLine.endPoint1 = points.at(points.size() - 1);
   newLine.endPoint2 = points.at(points.size() - 2);

@@ -4,7 +4,7 @@
 using namespace std;
 using namespace cv;
 
-CParabolaClustring::CParabolaClustring(double _threshold) : threshold(_threshold)
+CParabolaClustring::CParabolaClustring()
 {
   clusters.clear();     
 }
@@ -14,27 +14,23 @@ void CParabolaClustring::runParabolasClustering( vector<TParabola> inputParabola
 {
   transformParabolasToClusters(inputParabolas);
   
-  longestDistance = findMaximumDistance() / threshold;
   
-  //cout << "findMiximumDistance: " << findMiximumDistance() << endl;  
-  //cout << "threshold: " << threshold << endl;
+  //cout << "findMiximumDistance: " << findMiximumDistance() << endl
   
   int positionCluster1;
   int positionCluster2;
-  double distanceMin1 = 0.0;
-  double distanceMin2 = 0.0;
+  double distanceMin = 0.0;
   double stdDevNew = 0.0;
   double stdDevPrev = 0.0;
   
   while(clusters.size() > 2)
   {
-    findMinimumDistancePair(distanceMin1, distanceMin2,positionCluster1, 
-                            positionCluster2);
+    findMinimumDistancePair(distanceMin, positionCluster1, positionCluster2);
     
     //cout << "first minimum distance: " << distanceMin1 << endl;
     //cout << "second minimum distance: " << distanceMin2 << endl;
     
-    if(distanceMin1 < 30)
+    if(distanceMin < 30)
     {
       joinClusters(positionCluster1, positionCluster2);
       
@@ -77,39 +73,32 @@ void CParabolaClustring::transformParabolasToClusters(vector<TParabola> parabola
   }
 }
 
-void CParabolaClustring::findMinimumDistancePair(double& minDist1, 
-                                                double& minDist2, 
+void CParabolaClustring::findMinimumDistancePair(double& minDist, 
                                                 int& positionCluster1, 
                                                 int& positionCluster2)
 {
   positionCluster1 = 0;
   positionCluster2 = 0;
-  double minDistace1 = -1.0;
-  double minDistace2 = -1.0;
+  double minDistace = -1.0;
   double currentDistance;
   
   for(int i = 0; i < (int)clusters.size(); i++)
   {
     for(int j = i + 1; j < (int)clusters.size(); j++)
     {
-      currentDistance = computeEuclidDistanceSquared(clusters.at(i).centroidParabola, 
-                                                     clusters.at(j).centroidParabola);
-      if(currentDistance < minDistace1 || minDistace1 < 0)
+      currentDistance = computeEuclidDistanceParabolaSquared(
+        clusters.at(i).centroidParabola, clusters.at(j).centroidParabola);
+      
+      if(currentDistance < minDistace || minDistace < 0)
       {
-        minDistace2 = minDistace1;
-        minDistace1 = currentDistance;
+        minDistace = currentDistance;
         positionCluster1 = i;
         positionCluster2 = j;
-      }
-      else if(currentDistance < minDistace2)
-      {
-        minDistace2 = currentDistance;
       }
     }    
   }
   
-  minDist1 = minDistace1;
-  minDist2 = minDistace2;
+  minDist = minDistace;
 }
 
 double CParabolaClustring::getStdDevMean()
@@ -122,29 +111,8 @@ double CParabolaClustring::getStdDevMean()
   return result / clusters.size();
 }
 
-double CParabolaClustring::findMaximumDistance()
-{
-  double maxDistace = 0.0;
-  double currentDistance;
-  
-  for(int i = 0; i < (int)clusters.size(); i++)
-  {
-    for(int j = i + 1; j < (int)clusters.size(); j++)
-    {
-      currentDistance = computeEuclidDistanceSquared(clusters.at(i).centroidParabola, 
-                                                       clusters.at(j).centroidParabola);
-      
-      if(currentDistance > maxDistace)
-      {
-        maxDistace = currentDistance;
-      }
-    }    
-  }
-  
-  return maxDistace;
-}
-
-double CParabolaClustring::computeEuclidDistanceSquared(TParabola parabola1, TParabola parabola2)
+double CParabolaClustring::computeEuclidDistanceParabolaSquared(
+  TParabola parabola1, TParabola parabola2)
 {
   return (parabola1.apex.y-parabola2.apex.y)*(parabola1.apex.y-parabola2.apex.y);
 }

@@ -15,8 +15,8 @@ void CFindEdges::scanLine(Mat line, vector<int> &edges)
   // buffer for adaptiv treshold
   vector<uchar> buffer;
 
-  // precomputation for mean
-  float invSize = 1.0f / bufferSize;    // predpocitany pro vypocet prumeru
+  // precomputation for mean calculation
+  float invSize = 1.0f / bufferSize;
 
   // mean
   float mean = 0;

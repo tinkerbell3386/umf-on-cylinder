@@ -7,65 +7,60 @@
 #include "geometry_fundamentals.h"
 
 /**
- * Class CRansac
+ * Třída CRansac
  *
- * Partly generic class, which implements RANSAC algorithm. User has to provide
- * correct RANSAC model and number of iteration.
+ * Generická třída provádějící základní operace algoritmu RANSAC
  *
  * @author Radim Kriz (xkrizr03@stud.fit.vutbr.cz)
  */
-
 template<typename T>
 class CRansac
 {
 public:
 
   /**
-   * Constructor CRansac
+   * Konstruktor CRansac
    *
-   * Sets number of iteration of RANSAC algorithm and number of data defines the
-   * data.
-   *
-   * @param     int _numberOfModelData          number of data fits the model
-   * @param     int _numberOfIteration          number of iteration
+   * @param     int _numberOfModelData          počet dat nutných pro model
+   * @param     int _numberOfIteration          počet iterací algoritmu
    */
   CRansac(int _numberOfIteration, int _numberOfModelData);
 
   ~CRansac(){}
 
   /**
-   * Constructor runRansac
+   * Method runRansac
    *
-   * Run RANSAC algorithm
+   * Provede algoritmus RANSAC
    *
-   * @param     std::vector<TEllipse> data              input dataset
-   * @param     std::vector<TEllipse>& inliers          output inliers
+   * @param     std::vector<T> data              vstupní množina dat
+   * @param     std::vector<T>& inliers          výstupní inliers
    *
-   * @result    int                                     number of inliers
+   * @result    int                                     počet inliers
    */
   int runRansac(std::vector<T> data, std::vector<T>& inliers);
 
-  int wrongModels;      // counts number of wrong models
+  int wrongModels;      // počet špatných modelů - ladění
 
 protected:
 
   /**
-   * pure virtual method fitRansacModel
+   * Čistě virtuální metoda fitRansacModel
    *
-   * Defines RANSAC model. Has to be implemented by succesor.
+   * Zkontroluje zda dané dato spadá do aktuálního modelu. Implementuje potomek.
    *
-   * @param     std::vector<TEllipse> modelData         selected model data
-   * @param     TEllipse x                              tested data
+   * @param     T x                              testované dato
    *
-   * @result    bool                                    true if "x" fits model
+   * @result    bool                             příznak zda mode sedí
    */
   virtual bool fitRansacModel(T testedEllipse) = 0;
+  
   /**
-   * pure virtual method isModel
+   * Čistě virtuální metoda isModel
    *
-   * Check what if model data is good model or not.
+   * Definuje model pro RANSAC. Implementuje potomek.
    *
-   * @param     std::vector<TEllipse> modelData         input model data
+   * @param     std::vector<T> modelData         input model data
    *
    * @result    bool                                    correct model data
    */
@@ -74,37 +69,35 @@ protected:
 private:
 
   /**
-   * method getRandomData
+   * Metoda getRandomData
    *
-   * Randomly select model data from input dataset.
+   * Náhodně vybere požadovanou množinu modelových dat.
    *
-   * @param     std::vector<TEllipse> data              input dataset
-   * @param     std::vector<TEllipse>& modelData        output select data
+   * @param     std::vector<T> data              vstupní data
+   * @param     std::vector<T>& modelData        výstupní modelová data
    *
-   * @result    bool                                    true if select correctly
+   * @result    bool                             příznak, zda je vše ok
    */
-  bool getRandomData(std::vector<T> data,
-                     std::vector<T>& modelData);
+  bool getRandomData(std::vector<T> data, std::vector<T>& modelData);
 
   /**
-   * method getInliers
+   * Metoda getInliers
    *
-   * Find inliers from dataset by RANSAC algorithm.
+   * Najde Inliers pomocí algoritmu RANSAC
    *
-   * @param     std::vector<TEllipse> data              input dataset
-   * @param     std::vector<TEllipse> modelData         input model data
-   * @param     std::vector<TEllipse>& inliersFlags     output inliers
+   * @param     std::vector<T> data              vstupní data
+   * @param     std::vector<T> modelData         input model data
+   * @param     std::vector<T>& inliersFlags     výstupní inliers
    *
    * @result    int                                     number of inliers
    */
-  int getInliers(std::vector<T> data,
-                 std::vector<T> modelData,
+  int getInliers(std::vector<T> data, std::vector<T> modelData,
                  std::vector<T>& inliers);
 
-  int numberOfIteration;
-  int numberOfModelData;
+  int numberOfIteration; // počet iterací
+  int numberOfModelData; // počet modelových dat
   
-  std::default_random_engine randomGenerator;
+  std::default_random_engine randomGenerator; // generátor náhodných čísel
 };
 
 template <typename T>

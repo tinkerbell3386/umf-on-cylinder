@@ -1,5 +1,13 @@
 #include <cmath>
 
+/**
+ * Třída CStdDev
+ *
+ * Umí vypočítat variaci, průměr a standartní odchylku.
+ *
+ * @author Převzato z ???
+ */
+
 class CStdDev
 {
 public:

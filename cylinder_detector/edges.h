@@ -4,41 +4,62 @@
 #include <opencv2/opencv.hpp>
 #include <vector>
 
+/**
+ * Třída CFindEdges
+ * 
+ * Hledá hranové body na skenovacích přímkách. Hrany určuje podle adaptivního 
+ * prahování založeného na rozdílu hodnoty aktuálního bodu od průměrné hodnoty 
+ * bufferu předchozích bodů.
+ * 
+ * @author Radim Kříž (xkrizr03@stud.fit.vutbr.cz)
+ */ 
 class CFindEdges
 {
 public:
 
+  /**
+   * Konstruktor CFindEdges
+   *
+   * @param  int _scanlineStep          vzdálenost mezi skenovacími přímkami
+   * @param  int _bufferSize            velikost bufferu
+   * @param  int _adaptiveThreshold     základ pro adaptivní práh
+   */
   CFindEdges(int _scanlineStep = 20, int _bufferSize = 15,
              int _adaptiveThreshold = 25);
+  
   ~CFindEdges(){}
 
   /**
-   * method findEdges
+   * Metoda findEdges
    *
-   * Locates edges on the scan lines
+   * Hledá hranové body na skenovacích přímkách
    *
-   * @param  Mat img                      source image
-   * @param  vector<Point> &edges         output - vector with edges
-   * @param  const int scanlineStep       step between scan lines
+   * @param  cv::Mat img                        zdrojový obraz
+   * 
+   * @param  std::vector<cv::Point2f>& &edges   vektor nalezených hranových bodů
    */
   void findEdges(cv::Mat img, std::vector<cv::Point2f>& edges);
 
-  int adaptiveThreshold;
-  int scanlineStep;
+  int adaptiveThreshold;        // základ pro adaptivní práh
+  int scanlineStep;             // vzdálenost mezi skenovacími přímkami 
 
 private:
+  
   /**
-   * method scanLine
+   * Metoda scanLine
    *
-   * Locates edges on the single scan line
+   * Hladá hranové body na jedné skenovací přímce
    *
-   * @param  Mat line                     line, column vector
-   * @param  vector<Point> &edges         indexes of founded edges
+   * @param  cv::Mat line                       sloupcový vektor všech bodů
+   * 
+   * @param  std::vector<cv::Point> &edges      indexy nalezených bodů ve 
+   *                                            sloupcovém vektoru
    */
   void scanLine(cv::Mat line, std::vector<int>& edges);
 
 
-  int bufferSize;
+  int bufferSize; // velikost bufferu pro vypočet adaptivního prahu 
+
 };
 
 #endif // DP_EDGES_H

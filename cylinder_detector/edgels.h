@@ -4,111 +4,123 @@
 #include <opencv2/opencv.hpp>
 #include <vector>
 
+/**
+ * Třída CFindEdgels
+ * 
+ * Třída která z nalezených hranových bodů vytváří edgely, čili skupinu bodů 
+ * ležící na jedné hraně v obraze. Tyto body jsou uloženy ve vektoru.
+ * 
+ * Nejprve se začíná hledat s původního hranového bodu ve směru odezvy Sobelova 
+ * filtru, poté je směr hledání určen směrovým vektorem mezi dvěma posledním 
+ * nalezenými body. Jednotlivé hranové body se hledají pomocí binárního 
+ * vyhledávní.
+ * 
+ * @author Radim Kříž (xkrizr03@stud.fit.vutbr.cz)
+ */ 
 class CFindEdgels
 {
 public:
 
+  /**
+   * Konstruktor CFindEdgels
+   *
+   * @param  int _searchStep            vzdálenost mezi hhranovými body
+   * @param  int _searchRadius          rozsah hledání hranových bodů
+   * @param  int _searchThreshold       určuje citlivost na hranu, určuje zda 
+   *                                    daný rozdíl je hranou nebo nikoli
+   */
   CFindEdgels(int _searchStep = 10, int _searchRadius = 10,
               int _searchThreshold = 25);
 
   ~CFindEdgels(){}
 
   /**
-   * method getLinesFromEdgePoint2fs
+   * Metoda getLinesFromEdgePoint2fs
    *
-   * Find all edge points aroun the given edge points both directions
+   * Hledá veškeré hranové body okolo vstupních hranových bodů
    *
-   * @param  Mat img                              source image
-   * @param  vector<Point2f> baseEdges              all edge point so far
-   * @param  vector<vector<Point2f> > &newEdges     output - new edges
-   * @param  Mat draw                             for debug drawing
+   * @param  cv::Mat img                                zdrový obraz
+   * @param  std::vector<cv::Point2f> baseEdges         původní hranové body
+   * 
+   * @param  std::vector<std::vector<cv::Point2f> > &newEdges  nové hranové body
+   * @param  cv::Mat& draw                              obraz pro ladící účely
    */
-  void getEdgesFromEdgePoints(cv::Mat img,
-                              std::vector<cv::Point2f> baseEdges,
+  void getEdgesFromEdgePoints(cv::Mat img, std::vector<cv::Point2f> baseEdges,
                               std::vector<std::vector<cv::Point2f> > &newEdges,
                               cv::Mat &draw);
 
 private:
 
   /**
-   * method getSobelResponse
+   * Metoda getSobelResponse
    *
-   * Compute Sobbel responce from cross.
-   * Vertical: bottom and top pixels
-   * Horizontal: left and right pixels
+   * Výpočet odezvy Sobelova operátoru tvaru kříže. Určuje směr gradientu okolo
+   * daného bodu.
    *
-   * @param  Mat img      source image
-   * @param  Point2f point  source point
+   * @param  cv::Mat img        zdrojový obraz
+   * @param  cv::Point2f point  hranový bod
    *
-   * @return  Vec2f       vector with horizontal and vertical sobel responce
+   * @return  Vec2f             vektor s odezvou Sobelova filtru
    */
   cv::Vec2f getSobelResponse(cv::Mat img, cv::Point2f point);
 
   /**
-   * method binarySearch
+   * Method binarySearch
    *
-   * Provide binary search method to find an edge in interval defined by two
-   * points - with lower and heigher values
+   * Provádí nalezení hranového bodu na daném intervalu pomocí binárního 
+   * vyhledávání. 
+   * 
+   * Předpoklad je, že na daném intervalu se vyskytuje maximálně jedna hrana.
    *
-   * NOTE: Method expected only for edge in the interval!
+   * @param  cv::Mat img                zdrový obraz
+   * @param  cv::Point2f heigher        vyšší hodnota
+   * @param  cv::Point2f lower          nižší hodnota
+   * @param  const int edgeTreshold     práh určující hranu - skok
+   * @param  cv::Mat &draw              obraz pro ladění
    *
-   * @param  Mat img                            source image
-   * @param  Point2f heigher                      border point with higher value
-   * @param  Point2f lower                        border point with lower value
-   *
-   * @return  Point2f                             edge point
+   * @return  cv::Point2f               edge point
    */
-  cv::Point2f binarySearch(cv::Mat img,
-                     cv::Point2f heigher,
-                     cv::Point2f lower,
-                     const int edgeTreshold,
-                     cv::Mat &draw);
+  cv::Point2f binarySearch( cv::Mat img, cv::Point2f heigher, cv::Point2f lower,
+                            const int edgeTreshold, cv::Mat &draw);
 
   /**
-   * method getNewPionts
+   * Metoda getNewPoints
    *
-   * Locates edge points around the given base edge point
+   * Hledá body okolo původního hranového bodu ve směru určeném parametrem 
+   * shiftVector. Tento vektor je nejprve počítán pomocí odezvy na Sobelův filtr 
+   * a poté pomocí posledních dvou bodů.
    *
-   * @param  Mat img                            source image
-   * @param  Point2f originPoint                  origin point
-   * @param  Vec2f shiftVector                  shift vector
-   * @param  vector<Point2f> &newEdges            output - new edges
-   * @param  Mat draw                           for debug drawing
+   * @param  cv::Mat img                                zdrový obraz
+   * @param  cv::Point2f originPoint                    původní bod
+   * @param  cv::Vec2f shiftVector                      vektor směru hledání
+   * 
+   * @param  std::vector<cv::Point2f> &newEdges         nalezené body
+   * @param  cv::Mat& draw                              obraz pro ladění
    */
-  void getNewPoints(cv::Mat img,
-                    cv::Point2f originPoint,
-                    cv::Vec2f shiftVector,
-                    std::vector<cv::Point2f> &newEdges,
-                    cv::Mat &draw, cv::Scalar color);
+  void getNewPoints(cv::Mat img, cv::Point2f originPoint, cv::Vec2f shiftVector,
+                    std::vector<cv::Point2f> &newEdges, cv::Mat &draw, 
+                    cv::Scalar color);
 
   /**
-   * method getEdgePoint
+   * Metoda getEdgePoint
    *
-   * Provide binary search method to find an edge in interval defined by two
-   * points - with lower and heigher values
+   * Hledá následující hranový bod. Spojuje funkce getNewPoints a binarySearch.
    *
-   * NOTE: Method expected only one edge in the interval!
+   * @param  cv::Mat img               Zdrojový obraz
+   * @param  cv::Point2f basePoint     Počáteční bod
+   * @param  cv::Vec2f shiftVector     Vektor určující směr hledání
+   * 
+   * @param  cv::Point2f &edge          Nalezený bod
    *
-   * @param  Mat img                            source image
-   * @param  Point2f basePoint                    base point
-   * @param  Vec2f shiftVector                  shift vector
-   * @param  Point2f &edge                        output - new edge point
-   *
-   * @return  bool                               true when edge is found
+   * @return  bool                      Pravda pokud je bod nalezen
    */
-  bool getEdgePoint(cv::Mat img,
-                    cv::Point2f basePoint,
-                    cv::Vec2f shiftVector,
-                    cv::Point2f &edge,
-                    cv::Mat &draw);
+  bool getEdgePoint(cv::Mat img, cv::Point2f basePoint, cv::Vec2f shiftVector,
+                    cv::Point2f &edge, cv::Mat &draw);
 
-  int searchStep;
-  int searchRadius;
-  int searchThreshold;
+  int searchStep;       // vzdálenost mezi hranovými body
+  int searchRadius;     // rozsah hledání hranových bodů
+  int searchThreshold;  // určuje citlivost na hranu, určuje zda daný rozdíl je 
+                        // hranou nebo nikoli
 };
-
-
-
-
 
 #endif // DP_EDGELS_H

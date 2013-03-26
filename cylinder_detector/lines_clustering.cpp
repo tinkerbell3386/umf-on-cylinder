@@ -3,13 +3,12 @@
 
 using namespace std;
 
-CLineClustring::CLineClustring(double _threshold, TLine _centralLine, 
+CLineClustring::CLineClustring(TLine _centralLine, 
                                TLine _borderLine) : 
-threshold(_threshold),
 centralLine(_centralLine),
 borderLine(_borderLine)
 {
-  clusters.clear();     
+  clusters.clear();
 }
 
 void CLineClustring::cutLines(vector<TLine> inputLines, 
@@ -40,17 +39,14 @@ void CLineClustring::runLinesClustering(vector<TLine> inputLines,
   //cout << "number of selectedLines: " << inputLines.size() << endl; 
   
   transformLinesToClusters(selectedLines);
-  
-  //longestDistance = findMaximumDistance() / threshold;
-  
+    
   //cout << "findMiximumDistance: " << findMiximumDistance() << endl;
   
   //cout << "threshold: " << threshold << endl;
   
   int positionCluster1;
   int positionCluster2;
-  double distanceMin1 = 0.0;
-  double distanceMin2 = 0.0;
+  double distanceMin = 0.0;
   double stdDevNew = 0.0;
   double stdDevPrev = 0.0;
   
@@ -58,13 +54,13 @@ void CLineClustring::runLinesClustering(vector<TLine> inputLines,
   
   while(clusters.size() > 2)
   {
-    findMinimumDistancePair(distanceMin1, distanceMin2,positionCluster1, 
+    findMinimumDistancePair(distanceMin,positionCluster1, 
                             positionCluster2);
       
     //cout << "first minimum distance: " << distanceMin1 << endl;
     //cout << "second minimum distance: " << distanceMin2 << endl;
     
-    if(distanceMin1 < 20)
+    if(distanceMin < 20)
     {
       joinClusters(positionCluster1, positionCluster2);
       
@@ -95,7 +91,7 @@ void CLineClustring::runLinesClustering(vector<TLine> inputLines,
   
   //cout << "number of clusters: " << clusters.size() << endl; 
 }
-
+/*
 bool CLineClustring::checkCondition()
 {
   sort(clusters.begin(), clusters.end(), *this);
@@ -128,7 +124,8 @@ bool CLineClustring::checkCondition()
   
   return true;
 }
-
+*/
+/*
 bool CLineClustring::operator()(TLinesCluster c1, TLinesCluster c2)
 {
   double angle1 = getSmallerIntersectionAngle(c1.centroidLine, borderLine);
@@ -136,6 +133,7 @@ bool CLineClustring::operator()(TLinesCluster c1, TLinesCluster c2)
   
   return angle1 > angle2;
 }
+*/
 
 /*
 bool sortClustersCondition (TLinesCluster a, TLinesCluster b) 
@@ -170,14 +168,13 @@ void CLineClustring::transformLinesToClusters(std::vector<TLine> lines)
   }
 }
 
-void CLineClustring::findMinimumDistancePair(double& minDist1, double& minDist2, 
+void CLineClustring::findMinimumDistancePair(double& minDist, 
                                              int& positionCluster1, 
                                              int& positionCluster2)
 {
   positionCluster1 = 0;
   positionCluster2 = 0;
-  double minDistace1 = -1.0;
-  double minDistace2 = -1.0;
+  double minDistace = -1.0;
   double currentDistance;
   
   for(int i = 0; i < (int)clusters.size(); i++)
@@ -186,22 +183,16 @@ void CLineClustring::findMinimumDistancePair(double& minDist1, double& minDist2,
     {
       currentDistance = computeEuclidDistance3DSquared(clusters.at(i).centroidLine, 
                                                        clusters.at(j).centroidLine);
-      if(currentDistance < minDistace1 || minDistace1 < 0)
+      if(currentDistance < minDistace || minDistace < 0)
       {
-        minDistace2 = minDistace1;
-        minDistace1 = currentDistance;
+        minDistace = currentDistance;
         positionCluster1 = i;
         positionCluster2 = j;
-      }
-      else if(currentDistance < minDistace2)
-      {
-        minDistace2 = currentDistance;
       }
     }    
   }
   
-  minDist1 = minDistace1;
-  minDist2 = minDistace2;
+  minDist = minDistace;
 }
 
 double CLineClustring::getStdDevMean()
@@ -214,6 +205,7 @@ double CLineClustring::getStdDevMean()
   return result / clusters.size();
 }
 
+/*
 double CLineClustring::findMaximumDistance()
 {
   double maxDistace = 0.0;
@@ -235,6 +227,7 @@ double CLineClustring::findMaximumDistance()
   
   return maxDistace;
 }
+*/
 
 double CLineClustring::computeEuclidDistance3DSquared(TLine line1, TLine line2)
 {

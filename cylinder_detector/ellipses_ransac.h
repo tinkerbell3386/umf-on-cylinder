@@ -7,12 +7,15 @@
 #include "geometry_fundamentals.h"
 
 /**
- * Class CRansacLine
+ * Třída CRansacEllipse
  *
- * Finds best line from given dataset by RANSAC algorithm and by least square
- * method.
- *
- * Inherits from generic CRansac. Provides line model.
+ * Definuje RANSAC model pro elipsy definující hrany na válci. hledáme centrální
+ * přímku a hraniční přímku. A taky inliers elipsy.
+ * 
+ * Modelem je vzdálenost od centrální přímky, rovnoběžnost hlavních polos elips 
+ * a vzdálenost hlavního vrcholu od hraniční přímky.
+ * 
+ * Inherits from generic CRansac.
  *
  * @author Radim Kriz (xkrizr03@stud.fit.vutbr.cz)
  */
@@ -21,12 +24,13 @@ class CRansacEllipse : public CRansac<TEllipse>
 public:
 
   /**
-   * Constructor CRansacLine
+   * Konstruktor CRansacEllipse
    *
-   * Setup basic parameters
-   *
-   * @param     int _numberOfIteration          number of iteration
-   * @param     int _modelTrashold              treshold for line model
+   * @param     int _numberOfIteration                  počet iterací
+   * @param     int _vanishingPoint                     úběžník
+   * @param     int _modelDistanceTrashold              vzdálenostní práh 
+   * @param     int _modelPyramideDistanceTreshold      pyramidový práh
+   * @param     double _modelAngleTreshold              úhlový práh
    */
   CRansacEllipse(int _numberOfIteration,
                  cv::Point2f _vanishingPoint,
@@ -38,63 +42,78 @@ public:
   virtual ~CRansacEllipse(){}      // virtual destructor
 
   /**
-   * Constructor fitLineRANSAC
+   * Metoda fitEllipseRANSAC
    *
-   * Run RANSAC algorithm for finding line and fit line from computed inliers by
-   * least square error method.
+   * Provede kompletní algoritmus RANSAC. Po algoritmu provede spřesnění 
+   * hypotézy ze všech inliers.
    *
-   * @param     std::vector<TEllipse> ellipses          input dataset
-   * @param     std::vector<TEllipse>& inliers          output inliers
-   *
-   * @result    bool                                    number of inliers
+   * @param     std::vector<TEllipse> ellipses          vstupní elipsy
+   * @param     std::vector<TEllipse>& inliers          výstupní inliers
+   * @param     TLine& finalCentralLine                 centrální přímka
+   * @param     TLine& finalBorderLine                  hraniční přímka
+   * 
+   * @result    int                                    výsledné skóre
    */
   int fitEllipseRANSAC(std::vector<TEllipse> ellipses,
-                       std::vector<TEllipse>& inliers,
-                       TLine& finalCentralLine,
+                       std::vector<TEllipse>& inliers, TLine& finalCentralLine,
                        TLine& finalBorderLine);
   
 protected:
 
   /**
-   * Method fitRansacModel
+   * Metoda fitRansacModel
    *
-   * Define model for RANSAC. The criterium is number of ellipses in interval
+   * Testuje jestli vstupní elipsa vyhovuje hypotéze
    *
-   * @param     TEllipse testedEllipse      tested ellipse
-   * @param     TEllipse modelEllipse       model ellipse
+   * @param     TEllipse modelEllipse      modelová elipsa
    *
-   * @result    bool                       true when model ellipse fits
+   * @result    bool                       pravda pokud elipsa vyhovuje
    */
   virtual bool fitRansacModel(TEllipse modelEllipse);
 
   /**
-   * Constructor fitRansacModel
+   * Metoda isModel
    *
-   * Check if data can fit the model.
+   * Definuje model pro RANSAC iteraci. Stačí jedna elipsa.
    *
-   * @param     TEllipse modelEllipses     model ellipses
+   * @param     std::vector<TEllipse> modelEllipses    data k vytvoření modelu
    *
-   * @result    bool                                    correct model data
+   * @result    bool                                    pravda pokud je vše OK
    */
   virtual bool isModel(std::vector<TEllipse> modelEllipses);
 
 private:
-  void recomputeParams(std::vector<TEllipse> inliers);
   
+  /**
+   * Metoda recomputeParams
+   *
+   * Přepočítá hypotézu ze všech inliers
+   *
+   * @param     std::vector<TEllipse> inliers    inliers
+   */
+  void recomputeParams(std::vector<TEllipse> inliers);
+
+  /**
+   * Metoda getFinalInliers
+   *
+   * Hledá finální inliers ze spřesnných parametrů
+   *
+   * @param     std::vector<TEllipse> ellipses          elipsy
+   * @param     std::vector<TEllipse>& inliers          inliers
+   */  
   void  getFinalInliers(std::vector<TEllipse> ellipses,
                         std::vector<TEllipse>& inliers);
   
 public:
-  TLine centralLine;
-  cv::Point2f vanishingPoint;
+  cv::Point2f vanishingPoint;           // úběžník
   
-  int modelDistanceTrashold;    // treshold for line centers criterium
-  int modelPyramideDistanceTreshold;
-  double modelAngleTreshold;
+  int modelDistanceTrashold;            // vzdálenostní práh
+  int modelPyramideDistanceTreshold;    // pyramidový práh
+  double modelAngleTreshold;            // úhlový práh
 
-  TLine distanceLine;
-  TLine pyramideTreeShapedLine;
-  TLine elipseMainAxeLine;
+  TLine distanceLine;                   // centrální přímka
+  TLine pyramideTreeShapedLine;         // hraniční přímka
+  TLine elipseMainAxeLine;              // úhlová přímka
 };
 
 #endif // DP_LINE_RANSAC__H
