@@ -2,26 +2,33 @@
 #define DP_PARABOLA_FITTING_H
 
 #include "geometry_fundamentals.h"
-
-/**
- * class CParabolaFitting
- * 
- * This class can fit parabolas by Least Square Error Fitting.
- * It needs set of points and central line.
- * Central line defines rotation angle and translation in the direction of X, also X coord of apex.
- * 
- * Basic steps:
- * - Transform parabola that apex lies on the Y axe (apex X coord is 0) and Y is parabola axis.
- *   So it can fulfil equation: y = p*x*x + y0
- * - Use Least Square Error to fit this transformed parabola -> find p and y0
- * - To vizualize this parabola make inverse transformation
- */
+ 
+ /**
+  * Třída CParabolaFitting
+  * 
+  * Tato třída fituje paraboly pomcí metody least square error. K fitování potřebuje centrální osu válce a množinu zdrojových bodů.
+  * Osa válce definuje rotaci a translaci v ose X, zároveň umožňuje nastavit X-ovou souřadnici bodu X na 0 a tímto velmi zjednodoušit fitování.
+  * 
+  * Kroky fitování:
+  * - transformuje parabolu tak, že vrchol leží na osa Y a zároveň osa Y je i isa paraboly
+  *   Takže parabola splňuje podmínky rovnice: y = p*x*x + y0, kde hledáme p a y0
+  * - Parametry p a Y0 hledáme pomocí Metody nejmenších čtverců
+  * - Pro vizualizace korektní paraboly je nutné výslednou parabolu transformovat zpět
+  */
 class CParabolaFitting
 {
 public:
-  CParabolaFitting(TLine centralLine);
-  ~CParabolaFitting(){}
 
+  /**
+   * Konstruktor CParabolaFitting
+   * 
+   * @param TLine centralLine           osa válce
+   */
+  CParabolaFitting(TLine centralLine);
+  
+  ~CParabolaFitting(){}
+  
+  
   bool fitParabola(std::vector<cv::Point2f> points, TParabola& parabola, cv::Mat draw);
   void drawParabola(cv::Mat& img, TParabola parabola, cv::Scalar color, 
                     int thickness = 1);
