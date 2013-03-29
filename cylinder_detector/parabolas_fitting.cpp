@@ -9,8 +9,23 @@ CParabolaFitting::CParabolaFitting(TLine centralLine)
   setupTrasfomationMatrices();
 }
 
-bool CParabolaFitting::fitParabola(vector<Point2f> points, 
-                                   TParabola& parabola, Mat draw)
+void CParabolaFitting::fitParabolas(vector<TLine> lines, 
+                                    vector<TParabola>& parabolas)
+{
+  parabolas.clear();
+  for(int i = 0; i < (int)lines.size(); i++)
+  {
+    TParabola parabola;
+       
+    if(fitParabola(lines.at(i).points, parabola))
+    {
+      parabolas.push_back(parabola);
+    }
+  }
+}
+ 
+
+bool CParabolaFitting::fitParabola(vector<Point2f> points, TParabola& parabola)
 {
   if(points.size() < 2) 
   {
@@ -25,18 +40,7 @@ bool CParabolaFitting::fitParabola(vector<Point2f> points,
   pointsTrasformed.clear();
   
   transformPointsToY(points, pointsTrasformed);
-  
-  /*
-  cout << "points.size(): " << points.size() << endl;
-  cout << "pointsTrasformed.size(): " << pointsTrasformed.size() << endl;
-  
-  for(int i = 0; i < (int)pointsTrasformed.size(); i++)
-  {
-    cout << "pointsTrasformed: " << pointsTrasformed.at(i) << endl;
-    drawPoint(draw, pointsTrasformed.at(i), Scalar(0, 0, 255));
-  }  
-  */
-  
+    
   Mat Y(pointsTrasformed.size(), 1, CV_32FC1);
   Mat Z(pointsTrasformed.size(), 2, CV_32FC1);
   
@@ -53,7 +57,9 @@ bool CParabolaFitting::fitParabola(vector<Point2f> points,
   y0 = C.at<float>(0, 0);
   p = C.at<float>(1, 0);
   
-  parabola = TParabola(Point2f(0, y0), p, angle, origin.x, (int)pointsTrasformed.size());
+  parabola = TParabola(Point2f(0, y0), p, angle, origin.x, 
+                       (int)pointsTrasformed.size());
+  parabola.points = points;
   
   return true;
 }
@@ -71,12 +77,6 @@ void CParabolaFitting::transformPointsToY(vector<Point2f> input,
   }
   
   Mat resultMatrix = transformationMatrix * pointsMatrix;
-  
-  //cout << "pointsMatrix: " << pointsMatrix.rows << "x" << pointsMatrix.cols << endl;
-  //cout << pointsMatrix << endl << endl;
-  //cout << "transformationMatrix: " << transformationMatrix.rows << "x" << transformationMatrix.cols << endl;
-  //cout << transformationMatrix << endl << endl; 
-  //cout << "resultMatrix: " << resultMatrix.rows << "x" << resultMatrix.cols << endl;
   
   for(int i = 0; i < (int)resultMatrix.cols; i++)
   {
@@ -109,9 +109,6 @@ void CParabolaFitting::transformPointsBack(vector<Point2f> input,
     pointsMatrix.at<float>(1, i) = input.at(i).y;
     pointsMatrix.at<float>(2, i) = 1;
   }
-  
-  //cout << "pointsMatrix" << endl << pointsMatrix << endl;
-  //cout << "transformationMatrixInverse" << endl << transformationMatrixInverse << endl;
   
   Mat resultMatrix = transformationMatrixInverse * pointsMatrix;
   

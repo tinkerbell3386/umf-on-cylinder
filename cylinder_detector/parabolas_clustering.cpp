@@ -23,7 +23,7 @@ void CParabolaClustring::runParabolasClustering( vector<TParabola> inputParabola
   double stdDevNew = 0.0;
   double stdDevPrev = 0.0;
   
-  while(clusters.size() > 2)
+  while(clusters.size() > 1)
   {
     findMinimumDistancePair(distanceMin, positionCluster1, positionCluster2);
     
@@ -54,6 +54,11 @@ void CParabolaClustring::runParabolasClustering( vector<TParabola> inputParabola
       {       
         break;
       }
+    }
+    
+    if(clusters.size() == 1)
+    {
+      getResultParabolas(outputParabolas);
     }
     
     stdDevPrev = stdDevNew;

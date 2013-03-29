@@ -54,7 +54,7 @@ public:
    * - Následně převede všechny přímky na clustery
    * - Poté postupně sdružuje přímky do clusterů, podle minimální vzdálenosti 
    *    clusterů. Velmi blízké clustery sdružuje automaticky
-   * - Jakmile je rozdíl průměrných odchylek clusterů 3krát větší algoritmus 
+   * - Jakmile je rozdíl průměrných odchylek clusterů 2krát větší algoritmus 
    *    končí a vrací průměrné přímky zbylých clusterů
    * 
    * @param  std::vector<TLine> inputLines      vstupní přímky
@@ -75,7 +75,7 @@ public:
    *
    * @return bool                  uspěšnost porovnání
    */  
-  //bool operator()(TLinesCluster c1, TLinesCluster c2);
+  bool operator()(TLinesCluster c1, TLinesCluster c2);
   
 private:
   
@@ -152,7 +152,7 @@ private:
    * 
    * @return double                         maximální vzálenost
    */
-  //double findMaximumDistance();
+  double findMaximumDistance();
   
   /**
    * Metoda getStdDevMean
@@ -185,7 +185,7 @@ private:
    * 
    * @return bool                  příznak vyhovění podmínce
    */  
-  //bool checkCondition();
+  bool checkCondition();
   
   /**
    * Metoda cutLines

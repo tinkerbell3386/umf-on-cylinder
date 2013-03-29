@@ -52,7 +52,7 @@ void CLineClustring::runLinesClustering(vector<TLine> inputLines,
   
   cout << "number of clusters: " << clusters.size() << endl; 
   
-  while(clusters.size() > 2)
+  while(clusters.size() > 1)
   {
     findMinimumDistancePair(distanceMin,positionCluster1, 
                             positionCluster2);
@@ -80,10 +80,15 @@ void CLineClustring::runLinesClustering(vector<TLine> inputLines,
       
       //cout << "getStdDevMean: " << stdDevNew << endl;
       
-      if(stdDevNew > stdDevPrev * 3)// && checkCondition())
+      if(stdDevNew > stdDevPrev * 2)// && checkCondition())
       {       
         break;
       }
+    }
+    
+    if(clusters.size() == 1)
+    {
+      getResultLines(outputLines);
     }
     
     stdDevPrev = stdDevNew;
@@ -91,7 +96,7 @@ void CLineClustring::runLinesClustering(vector<TLine> inputLines,
   
   //cout << "number of clusters: " << clusters.size() << endl; 
 }
-/*
+
 bool CLineClustring::checkCondition()
 {
   sort(clusters.begin(), clusters.end(), *this);
@@ -124,8 +129,8 @@ bool CLineClustring::checkCondition()
   
   return true;
 }
-*/
-/*
+
+
 bool CLineClustring::operator()(TLinesCluster c1, TLinesCluster c2)
 {
   double angle1 = getSmallerIntersectionAngle(c1.centroidLine, borderLine);
@@ -133,28 +138,7 @@ bool CLineClustring::operator()(TLinesCluster c1, TLinesCluster c2)
   
   return angle1 > angle2;
 }
-*/
 
-/*
-bool sortClustersCondition (TLinesCluster a, TLinesCluster b) 
-{ 
-  double posA = a.centroidLine.a + a.centroidLine.a + a.centroidLine.b;
-  double posB = b.centroidLine.a + b.centroidLine.a + b.centroidLine.b;
-  return ; 
-  
-}
-
-bool CLineClustring::testExpectedCentroidsPosition()
-{
-  bool test;
-  sort(clusters.begin(), clusters.end(), sortClustersCondition);
-  for(int i = 0; i < (int)clusters.size(); i++)
-  {
-    ;
-  }
-  return test;
-}
-*/
 void CLineClustring::transformLinesToClusters(std::vector<TLine> lines)
 {
   for(int i = 0; i < (int)lines.size(); i++)
@@ -205,7 +189,6 @@ double CLineClustring::getStdDevMean()
   return result / clusters.size();
 }
 
-/*
 double CLineClustring::findMaximumDistance()
 {
   double maxDistace = 0.0;
@@ -227,7 +210,7 @@ double CLineClustring::findMaximumDistance()
   
   return maxDistace;
 }
-*/
+
 
 double CLineClustring::computeEuclidDistance3DSquared(TLine line1, TLine line2)
 {

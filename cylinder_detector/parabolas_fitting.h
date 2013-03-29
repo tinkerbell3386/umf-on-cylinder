@@ -28,27 +28,105 @@ public:
   
   ~CParabolaFitting(){}
   
+  /**
+   * Metoda fitParabolas
+   * 
+   * Fituje paraboly z bodů vstupních přímek.
+   * 
+   * @param std::vector<TLine> lines            zdrojove primky
+   * @param vector<TParabola>& parabola         vystupni vektor parabol
+   */  
+  void fitParabolas(std::vector<TLine> lines, std::vector<TParabola>& parabolas);
   
-  bool fitParabola(std::vector<cv::Point2f> points, TParabola& parabola, cv::Mat draw);
+  /**
+   * Metoda fitParabola
+   * 
+   * Fituje parabolu ze sady bodů. 
+   * 
+   * Nejprve body transformuje podle osy válce. Poté pomocí metody nejmenších 
+   * čtverců nalezne parametry p a Y0 a naplní strukturu nalezené elipsy.
+   * 
+   * @param std::vector<cv::Point2f> points     vstupní sada bodů
+   * @param TParabola& parabola                 výstupní parabola
+   * 
+   * @return bool                               úspěšnost nalezení paraboly
+   */
+  bool fitParabola(std::vector<cv::Point2f> points, TParabola& parabola);
+  
+  /**
+   * Metoda drawParabola
+   * 
+   * Vykresluje parabolu. 
+   * 
+   * Nejprve provede zpětnou transformaci bodů, které tvoří parabolu. Tyto body 
+   * zpětně transformuje a spojí přímkami.
+   * 
+   * @param cv::Mat& img                        obrázek, do kterého se kreslí
+   * @param TParabola parabola                  vykreslovaná parabola
+   * @param cv::Scalar color                    barva
+   * @param int thickness                       tloušťka
+   */
   void drawParabola(cv::Mat& img, TParabola parabola, cv::Scalar color, 
                     int thickness = 1);
   
-  cv::Point2f transformPointBack(cv::Point2f input);
-  
+  /**
+   * Metoda transformPointsToY
+   * 
+   * Metoda transformuje body pomocí translace a rotace podle osy válce tak, 
+   * aby odpovídali ose Y.
+   * 
+   * @param std::vector<cv::Point2f> input      vstupní sada bodů 
+   * @param std::vector<cv::Point2f>& output    sada transformovaných bodů
+   */ 
   void transformPointsToY(std::vector<cv::Point2f> input, 
                           std::vector<cv::Point2f>& output);
   
+  /**
+   * Metoda transformPointBack
+   * 
+   * Transformuje bod  pět pomocí reverzní trasformace
+   * 
+   * @param cv::Point2f input                   vstupní bod 
+   *    
+   * @return cv::Point2f                        transformovaný bod
+   */ 
+  cv::Point2f transformPointBack(cv::Point2f input);
+  
+  /**
+   * Metoda transformPointsBack
+   * 
+   * Transformuje body zpět pomocí reverzní trasformace
+   * 
+   * @param std::vector<cv::Point2f> input      vstupní sada bodů 
+   * @param std::vector<cv::Point2f>& output    sada transformovaných bodů
+   */ 
   void transformPointsBack(std::vector<cv::Point2f> input, 
                            std::vector<cv::Point2f>& output);
   
 private:
+  
+  /**
+   * Metoda getAngleAndOrigin
+   * 
+   * Vypočte parametry pro transformaci. 
+   * 
+   * Úhel mezi osou Y a osou válce a počátek - bod kde osa válce protíná osu X
+   * 
+   * @param TLine line                          osa válce
+   */ 
   void getAngleAndOrigin(TLine line);
+  
+  /**
+   * Metoda setupTrasfomationMatrices
+   * 
+   * Sestaví transformační matice - translace a rotace
+   */ 
   void setupTrasfomationMatrices();
   
-  cv::Mat transformationMatrix;
-  cv::Mat transformationMatrixInverse;
-  cv::Point2f origin;
-  double angle;
+  cv::Mat transformationMatrix; // transformační matice - rotace a translace
+  cv::Mat transformationMatrixInverse;  //zpětná transformační matice
+  cv::Point2f origin;                   // počátek, bod kde osa válce protíná osu X
+  double angle;                         // úhel mezi osou Y a osou válce
 };
 
 #endif // DP_PARABOLA_FITTING_H

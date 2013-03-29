@@ -56,13 +56,14 @@ public:
    * výsledky. Vrací úběžník.
    *
    * @param std::vector<TLine> lines            zdrojové přímky
+   * @param int index                           index směru
    * @param std::vector<TLine>& outputLlines    upravené výstupní přímky
    * @param TLine& normal                       přímka procházející středem
    * @param cv::Point2f center                  střed obrazu
    * 
    * @return cv::Point2f                        úběžník
    */
-  cv::Point2f GetVanishingPoint(std::vector<TLine> lines, 
+  cv::Point2f GetVanishingPoint(std::vector<TLine> lines, int index, 
                                 std::vector<TLine>& outputLlines, 
                                 TLine& normal, cv::Point2f center);
   

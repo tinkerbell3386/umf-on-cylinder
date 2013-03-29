@@ -22,7 +22,7 @@ void CEllipseClustring::runEllipsesClustering( vector<TEllipse> inputEllipses,
   double stdDevNew = 0.0;
   double stdDevPrev = 0.0;
   
-  while(clusters.size() > 2)
+  while(clusters.size() > 1)
   {
     findMinimumDistancePair(distanceMin, positionCluster1, 
                             positionCluster2);
@@ -54,6 +54,11 @@ void CEllipseClustring::runEllipsesClustering( vector<TEllipse> inputEllipses,
       {       
         break;
       }
+    }
+    
+    if(clusters.size() == 1)
+    {
+      getResultEllipses(outputEllipses);
     }
     
     stdDevPrev = stdDevNew;

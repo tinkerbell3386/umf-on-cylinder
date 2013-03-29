@@ -32,7 +32,7 @@ int main(int argc, char** argv)
   for(int x = 1; x < 1000; x++) {
 
     stringstream str;
-    str << "../data/images4/" << x << "data.jpg";
+    str << "../data/images5/" << x << "data.jpg";
     //str << "data/test.jpg";
     cout << str.str() << endl;
 
@@ -66,7 +66,7 @@ int main(int argc, char** argv)
     vector<TLine> linesGrouped;
     vector<TLine> linesGrouped2;
     wrapper->setCenter(Point2f(source.cols / 2, source.rows / 2));
-    wrapper->getLineGroups(lines, linesGrouped, linesGrouped2);
+    int index = wrapper->getLineGroups(lines, linesGrouped, linesGrouped2);
     
     // fitting ellipses
     vector<TEllipse> ellipses;
@@ -75,7 +75,7 @@ int main(int argc, char** argv)
     // location of vanishing point and lines correction
     vector<TLine> linesSelected;
     TLine vanishNormal;
-    Point2f vanishPoint = wrapper->GetVanishingPoint(lines, linesSelected, vanishNormal, Point2f(source.cols / 2, source.rows / 2));
+    Point2f vanishPoint = wrapper->GetVanishingPoint(linesGrouped, index, linesSelected, vanishNormal, Point2f(source.cols / 2, source.rows / 2));
 
     cout << "vanishPoint: " << vanishPoint << endl;
     
@@ -205,27 +205,7 @@ int main(int argc, char** argv)
     drawLine(rgb9, centralLine, Scalar(255, 0, 255));
     
     vector<TParabola> parabolas;
-    for(int i = 0; i < (int)linesGrouped2.size(); i++)
-    {
-      TParabola parabola;
-      
-      for(int j = 0; j < (int)linesGrouped2.at(i).points.size(); j++)
-      {
-        //drawPoint(rgb5, parabolaGroup.at(i).points.at(j), Scalar(255, 0, 255));
-      }
-      
-      if(parabolaFitting->fitParabola(linesGrouped2.at(i).points, parabola, rgb9))
-      {
-        
-        //cout << "apex: " << parabola.apex << endl;
-        //cout << "param: " << parabola.param << endl;
-        //cout << "angle: " << parabola.angle * 180 / PI << endl;
-        
-        cout << parabola.apex.y << " " << parabola.param << ";" << endl;
-        
-        parabolas.push_back(parabola);
-      }
-    }
+    parabolaFitting->fitParabolas(linesGrouped2, parabolas);
     
     for(int i = 0; i < (int)parabolas.size(); i++)
     {
@@ -272,11 +252,11 @@ int main(int argc, char** argv)
     
     cout << "-------" << x << "-------" << endl;
 
-    /*imshow("Output: All lines", rgb);
+    imshow("Output: All lines", rgb);
     imshow("Output: Lines grouped by direction", rgb2);
     imshow("Output: Lines after fitting vanishing point", rgb3);
     imshow("Output: lines after clustering", rgb4);
-*/
+
     imshow("Output: All ellipses", rgb5);
     imshow("Output: Ellipses after RANSAC", rgb7);
     imshow("Output: Ellipses after clustering", rgb8);

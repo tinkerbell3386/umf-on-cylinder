@@ -28,18 +28,18 @@ void CWrapper::setCenter(Point2f _imageCenter)
   refLines[3] = lineNormalization(TLine(-1, 1, imageCenter.x - imageCenter.y));
 }
 
-Point2f CWrapper::GetVanishingPoint(vector<TLine> lines, vector<TLine>& outputLlines, TLine& normal, Point2f center)
+Point2f CWrapper::GetVanishingPoint(vector<TLine> lines, int index, vector<TLine>& outputLlines, TLine& normal, Point2f center)
 {
   setCenter(center);
 
-  vector<TLine> linesGroup;
-  vector<TLine> linesGroup2;
-  int index = getLineGroups(lines, linesGroup, linesGroup2);
+  //vector<TLine> linesGroup;
+  //vector<TLine> linesGroup2;
+  //int index = getLineGroups(lines, linesGroup, linesGroup2);
 
   vector<Line> linesGroupConverted;
-  for(int i = 0; i < (int)linesGroup.size(); i++)
+  for(int i = 0; i < (int)lines.size(); i++)
   {
-    linesGroupConverted.push_back(convertLineWhole(linesGroup.at(i)));
+    linesGroupConverted.push_back(convertLineWhole(lines.at(i)));
   }
 
   vector<Line> umfLines;
@@ -69,7 +69,7 @@ int CWrapper::getLineGroups(vector<TLine> lines, vector<TLine>& linesGroup, vect
   
   for(int i = 0; i < (int)lines.size(); i++)
   {
-    TLine testLine = lineNormalization(lines[i]); //normalize, so we don't have to calculate length
+    TLine testLine = lineNormalization(lines.at(i)); //normalize, so we don't have to calculate length
 
     for(int j = 0; j < 4; j++)
     {
@@ -78,20 +78,20 @@ int CWrapper::getLineGroups(vector<TLine> lines, vector<TLine>& linesGroup, vect
       double dotp = std::abs(refLines[j].a * testLine.a + refLines[j].b * testLine.b);
       if(dotp < 0.5) // cos PI/3 - since there should be PI/2 to get the intersection right - this gives PI/6 allowance in both directions
       {              // je tu presah, jedna cara muze byt ve vice skupinach
-        LineDirectionGroups[j].push_back(lines[i]);
-        LineDirectionScores[j] += lines[i].score;
-        LineDirectionDev[j] += lines[i].deviation;
+        LineDirectionGroups[j].push_back(lines.at(i));
+        LineDirectionScores[j] += lines.at(i).score;
+        LineDirectionDev[j] += lines.at(i).deviation;
       }
     }
   }
   
-  double maxValue =  LineDirectionScores[0] / (LineDirectionDev[0] / (LineDirectionGroups[0].size()+1)+1);
+  double maxValue = LineDirectionScores[0];
   int index = 0;
   cout << "result value " << index << ": " << maxValue << endl;
   
   for(int i = 1; i < 4; i++)
   {
-    double value =  LineDirectionScores[i] / (LineDirectionDev[i] / (LineDirectionGroups[i].size()+1)+1);
+    double value =  LineDirectionScores[i];
     cout << "result value " << i << ": " << value << endl;
     if(maxValue < value)
     {
@@ -103,9 +103,16 @@ int CWrapper::getLineGroups(vector<TLine> lines, vector<TLine>& linesGroup, vect
   // Find the max element
   //int index = max_element(LineDirectionResult, LineDirectionResult + 4 * sizeof(double)) - LineDirectionResult;
 
-  linesGroup = LineDirectionGroups[index];
-  
-  linesGroup2 = LineDirectionGroups[(index + 2) % 4];
+  if((LineDirectionDev[index] / LineDirectionGroups[index].size()) < (LineDirectionDev[(index + 2) % 4] / LineDirectionGroups[(index + 2) % 4].size()))
+  {
+    linesGroup = LineDirectionGroups[index];
+    linesGroup2 = LineDirectionGroups[(index + 2) % 4];
+  }
+  else
+  {
+    linesGroup = LineDirectionGroups[(index + 2) % 4];
+    linesGroup2 = LineDirectionGroups[index];
+  }
   
   return index;
 }
