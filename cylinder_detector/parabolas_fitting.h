@@ -102,6 +102,11 @@ public:
    */ 
   void transformPointsBack(std::vector<cv::Point2f> input, 
                            std::vector<cv::Point2f>& output);
+ 
+  cv::Mat transformationMatrix; // transformační matice - rotace a translace
+  cv::Mat transformationMatrixInverse;  //zpětná transformační matice
+  cv::Point2f origin;                   // počátek, bod kde osa válce protíná osu X
+  double angle;                         // úhel mezi osou Y a osou válce
   
 private:
   
@@ -122,11 +127,6 @@ private:
    * Sestaví transformační matice - translace a rotace
    */ 
   void setupTrasfomationMatrices();
-  
-  cv::Mat transformationMatrix; // transformační matice - rotace a translace
-  cv::Mat transformationMatrixInverse;  //zpětná transformační matice
-  cv::Point2f origin;                   // počátek, bod kde osa válce protíná osu X
-  double angle;                         // úhel mezi osou Y a osou válce
 };
 
 #endif // DP_PARABOLA_FITTING_H

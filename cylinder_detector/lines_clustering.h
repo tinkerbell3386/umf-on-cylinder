@@ -22,7 +22,7 @@ struct TLinesCluster
 };
 
 /**
- * Struktura CLineClustring
+ * Třída CLineClustring
  * 
  * Třída clusteruje přímky pomocí hierarchické clusterování. 
  * 

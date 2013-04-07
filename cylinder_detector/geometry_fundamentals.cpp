@@ -273,3 +273,27 @@ Point2f rotatePoint(Point2f point, Point2f origin, double angle)
 
   return newPoint;
 }
+
+bool getParabolasIntersection(TParabola a, TParabola b, 
+                              Point2f& intersection)
+{
+  if((b.param - a.param) == 0.0)
+  {
+    return false;
+  }
+  
+  // výpočet x^2
+  float x = (a.apex.y - b.apex.y) / (b.param - a.param);
+  
+  if(x < 0)
+  {
+    return false;
+  }
+  
+  float y = b.param * x + b.apex.y;
+  
+  intersection = Point2f(std::sqrt(x), y);
+  
+  return true;
+}
+

@@ -78,6 +78,7 @@ void CParabolaFitting::transformPointsToY(vector<Point2f> input,
   
   Mat resultMatrix = transformationMatrix * pointsMatrix;
   
+  // není třeba dělit homegení souřadnicí - je vždy 1
   for(int i = 0; i < (int)resultMatrix.cols; i++)
   {
     output.push_back(Point2f(resultMatrix.at<float>(0, i), 
@@ -94,7 +95,7 @@ Point2f CParabolaFitting::transformPointBack(Point2f input)
   
   Mat resultMatrix = transformationMatrixInverse * pointsMatrix;
   
-
+  // není třeba dělit homegení souřadnicí - je vždy 1
   return Point2f(resultMatrix.at<float>(0, 0), resultMatrix.at<float>(1, 0));
 }
 
@@ -111,9 +112,8 @@ void CParabolaFitting::transformPointsBack(vector<Point2f> input,
   }
   
   Mat resultMatrix = transformationMatrixInverse * pointsMatrix;
-  
-  //cout << "resultMatrix" << endl  << resultMatrix << endl;
-  
+    
+  // není třeba dělit homegení souřadnicí - je vždy 1
   for(int i = 0; i < (int)resultMatrix.cols; i++)
   {
     output.push_back(Point2f(resultMatrix.at<float>(0, i), 
@@ -188,5 +188,3 @@ void CParabolaFitting::drawParabola(Mat& img, TParabola parabola, Scalar color,
     pt1 = pt2;
   }
 }
-
-

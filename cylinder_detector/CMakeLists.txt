@@ -35,6 +35,8 @@ ellipses_clustering.cpp
 ellipses_fitting.cpp
 ellipses_ransac.cpp
 parabolas_clustering.cpp
+supplement.cpp
+find_grid.cpp
 )
 
 set(HDRS
@@ -54,6 +56,8 @@ ellipses_clustering.h
 ellipses_fitting.h
 ellipses_ransac.h
 parabolas_clustering.h
+supplement.h
+find_grid.h
 )
 
 # Ellipse version

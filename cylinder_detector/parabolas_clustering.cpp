@@ -22,7 +22,7 @@ void CParabolaClustring::runParabolasClustering( vector<TParabola> inputParabola
   double distanceMin = 0.0;
   double stdDevNew = 0.0;
   double stdDevPrev = 0.0;
-  
+    
   while(clusters.size() > 1)
   {
     findMinimumDistancePair(distanceMin, positionCluster1, positionCluster2);
@@ -73,6 +73,7 @@ void CParabolaClustring::transformParabolasToClusters(vector<TParabola> parabola
     cluster.centroidParabola = parabolas.at(i);
     cluster.parabolas.push_back(parabolas.at(i));
     cluster.variation = 0;
+    cluster.score = parabolas.at(i).score;
     
     clusters.push_back(cluster);
   }
@@ -129,6 +130,8 @@ void CParabolaClustring::joinClusters(int positionCluster1, int positionCluster2
                                                 clusters.at(positionCluster2).parabolas.begin(), 
                                                 clusters.at(positionCluster2).parabolas.end());
   
+  clusters.at(positionCluster1).score += clusters.at(positionCluster2).score;
+  
   clusters.erase(clusters.begin() + positionCluster2);
   
   clusters.at(positionCluster1).centroidParabola = getCentroidParabola(clusters.at(positionCluster1).parabolas);
@@ -154,7 +157,7 @@ TParabola CParabolaClustring::getCentroidParabola(vector<TParabola> parabolas)
     sumAngle += parabolas.at(i).angle * parabolas.at(i).score;
   }
   
-  return TParabola(Point2f(0, sumCenterY / sumScore), sumParam / sumScore, sumAngle / sumScore,  sumOrigin / sumScore);
+  return TParabola(Point2f(0, sumCenterY / sumScore), sumParam / sumScore, sumAngle / sumScore,  sumOrigin / sumScore, sumScore);
 }
 
 double CParabolaClustring::getStdDev(vector<TParabola> parabolas)
@@ -180,5 +183,42 @@ void CParabolaClustring::getResultParabolas(vector<TParabola>& parabolas)
   {
     parabolas.push_back(clusters.at(i).centroidParabola);
   }
+}
+
+Point2f CParabolaClustring::recomputeClusteredParabolas(vector<TParabola> input,
+                                                     vector<TParabola>& output)
+{
+  int counter = 0;
+  Point2f refPoint(0, 0);
+  
+  // pro všechny kombinace clusterů hledáme společný průsečík pomocí váženého 
+  // průměru přes skóre
+  for(int i = 0; i < (int)input.size(); i++)
+  {
+    for(int j = i + 1; j < (int)input.size(); j++)
+    {
+      Point2f intersection;
+      if(getParabolasIntersection(input.at(i), input.at(j), intersection))
+      {
+        refPoint.x += (double)intersection.x * (input.at(i).score + input.at(j).score);
+        refPoint.y += (double)intersection.y * (input.at(i).score + input.at(j).score);
+        counter += input.at(i).score + input.at(j).score;
+      }
+    }
+  }
+  
+  refPoint.x /= counter;
+  refPoint.y /= counter;
+  
+  // na základě znalosti společného průsečíku přepočítamé parametry parabolám
+  output.clear();
+  for(int i = 0; i < (int)input.size(); i++)
+  {
+    TParabola newParabola = input.at(i);
+    newParabola.param = (refPoint.y - newParabola.apex.y) / (refPoint.x * refPoint.x);
+    output.push_back(newParabola);
+  }
+  
+  return refPoint;
 }
 

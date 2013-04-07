@@ -204,4 +204,28 @@ cv::Point2f rotatePoint(cv::Point2f point, cv::Point2f origin, double angle);
  */
 double getPointToPointDistance(cv::Point2f a, cv::Point2f b);
 
+/**
+ * Funkce getParabolasIntersection
+ *
+ * Vypočte průsečík dvou parabol. Paraboly maji vrchol na stejné ose a X-ová 
+ * souřadnice je rovna 0. (naše paraboly)
+ * 
+ * Vrací jenom jeden bod, druhy je pripadne jeho obrazem pres osu stredu.
+ * 
+ * Funkce vrací false pokud prusecik neexistuje jinak true
+ * 
+ * rovnice (úpravou získáme co potřebujeme):
+ * y = p1*x^2 + y1
+ * y = p2*x^2 + y2
+ * 
+ * @param  TParabola a          1. parabola
+ * @param  TParabola b          2. parabola
+ * @param  cv::Point2f&         průsečík
+ * 
+ * @return pokud bod existuje
+ */
+bool getParabolasIntersection(TParabola a, TParabola b, 
+                              cv::Point2f& intersection);
+
+
 #endif // DP_GEOMETRY_FUNDAMENTALS_H

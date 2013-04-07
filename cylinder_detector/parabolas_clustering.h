@@ -16,6 +16,7 @@ struct TParabolaCluster
 {
   TParabola centroidParabola;
   double variation;
+  int score;
   std::vector<TParabola> parabolas;
 };
 
@@ -53,6 +54,19 @@ public:
   void runParabolasClustering(std::vector<TParabola> inputParabolas, 
                              std::vector<TParabola>& outputParabolas);
 
+  /**
+   * Metoda recomputeParabolas
+   * 
+   * Přepočítá paraboly z clusterrů tak, že všechny mají společný průsečík.
+   * 
+   * @param vector<TParabola> input     vstup
+   * @param vector<TParabola>& output   výstup
+   * 
+   * @return cv::Point2f                referenční průsečík všech parabol
+   */  
+  cv::Point2f recomputeClusteredParabolas(std::vector<TParabola> input, 
+                                          std::vector<TParabola>& output);
+  
 private:
   
   /**

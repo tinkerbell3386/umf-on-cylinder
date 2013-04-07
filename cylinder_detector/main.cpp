@@ -1,6 +1,7 @@
 #include <opencv2/opencv.hpp>
 #include <vector>
 #include <iostream>
+#include <fstream>
 
 #include "edges.h"
 #include "edgels.h"
@@ -13,6 +14,8 @@
 #include "parabolas_fitting.h"
 #include "parabolas_ransac.h"
 #include "parabolas_clustering.h"
+#include "supplement.h"
+#include "find_grid.h"
 
 using namespace cv;
 using namespace std;
@@ -28,6 +31,11 @@ int main(int argc, char** argv)
   CFittingLine* lineFitting = new CFittingLine();
   CEllipseFitting* ellipseFitting = new CEllipseFitting();
   CWrapper* wrapper = new CWrapper();
+
+  // output file
+  ofstream myfile;
+  myfile.open ("output.txt");
+  //int counter = 0;
   
   for(int x = 1; x < 1000; x++) {
 
@@ -234,16 +242,133 @@ int main(int argc, char** argv)
     source.copyTo(rgb11);
     
     CParabolaClustring* parabolaClustring = new CParabolaClustring();
+    
     vector<TParabola> clusteredParabola;
     parabolaClustring->runParabolasClustering(inliersParabola, clusteredParabola);
-        
-    for(int i = 0; i < (int)clusteredParabola.size(); i++)
+    
+    vector<TParabola> clusteredFinalParabola;
+    Point2f referencePoint = parabolaClustring->recomputeClusteredParabolas(clusteredParabola, clusteredFinalParabola);
+    
+    for(int i = 0; i < (int)clusteredFinalParabola.size(); i++)
     {
-      parabolaFitting->drawParabola(rgb11, clusteredParabola.at(i), Scalar(255, 255, 0));
+      parabolaFitting->drawParabola(rgb11, clusteredFinalParabola.at(i), Scalar(255, 255, 0));
     }
     
-    ////////////////////////////////////////////////////////////////////////////////     
+    drawPoint(rgb11, parabolaFitting->transformPointBack(referencePoint), Scalar(0, 0, 255));
     
+    /*
+    //myfile << "X" << counter++ << " = [" << endl;
+    //int counter2 = 0;
+    
+    
+    sort(clusteredParabola.begin(), clusteredParabola.end(), [](TParabola a, TParabola b){return a.apex.y > b.apex.y;});
+    
+    for(int i = 2; i < (int)clusteredParabola.size()-2; i++)
+    {
+      parabolaFitting->drawParabola(rgb11, clusteredParabola.at(i), Scalar(255, 255, 0));
+      
+      //cout << "pos: " << clusteredParabola.at(i).apex.y << "," << "pos: " << (clusteredParabola.at(i).apex.y - clusteredParabola.at(i+1).apex.y) << endl;
+      cout << "param: " << clusteredParabola.at(i).param << "," << "param diff: " << (clusteredParabola.at(i).param - clusteredParabola.at(i+1).param) << endl;
+      
+      //myfile << (clusteredParabola.at(i).apex.y - tmpValue) << endl;
+      //myfile << "--------------------------" << endl;
+      //tmpValue = clusteredParabola.at(i).apex.y;
+    }
+    
+    double refDist = clusteredParabola.at(3).apex.y - clusteredParabola.at(2).apex.y;
+    
+    double sum = 0;
+    int counter2 = 0;
+    for(int i = 4; i < (int)clusteredParabola.size()-2; i++)
+    {
+      double tmpDist = clusteredParabola.at(i).apex.y - clusteredParabola.at(i-1).apex.y;
+      sum += (refDist - tmpDist) / (i - 3);
+      counter2++;
+      cout << "(refDist - tmpDist) / (i - 3): " << (refDist - tmpDist) / (i - 3) << endl;
+    }
+    
+    double tmpSize = sum / counter2;
+    double tmpPos = clusteredParabola.at(2).apex.y;
+    double tmpPos2 = clusteredParabola.at(2).apex.y;
+    
+    cout << "tmpSize: " << tmpSize << endl;
+    cout << "tmpdist: " << refDist << endl;
+        
+    parabolaFitting->drawParabola(rgb11, TParabola(Point2f(0, tmpPos2), 0, clusteredParabola.at(2).angle, clusteredParabola.at(2).origin), Scalar(255, 0, 255));
+    
+    int counter3 = 0;  
+    for(int i = 0; i < 20; i++)
+    {
+      cout << "refDist + counter3*tmpSize: " << refDist + counter3*tmpSize << endl;
+
+      tmpPos2 -= refDist + (counter3 * tmpSize);
+      parabolaFitting->drawParabola(rgb11, TParabola(Point2f(0, tmpPos2), 0, clusteredParabola.at(2).angle, clusteredParabola.at(2).origin), Scalar(255, 0, 255));
+      
+      tmpPos += refDist - (counter3 * tmpSize);
+      parabolaFitting->drawParabola(rgb11, TParabola(Point2f(0, tmpPos), 0, clusteredParabola.at(2).angle, clusteredParabola.at(2).origin), Scalar(255, 0, 255));
+      counter3++;
+    }
+    */
+    //myfile << "]" << endl << endl;
+    ////////////////////////////////////////////////////////////////////////////////     
+ 
+ 
+ Mat rgb12;
+ source.copyTo(rgb12);
+ 
+ CSupplement* supplement = new CSupplement();
+ vector<TParabola> supplementParabola;
+ supplement->runSupplement(clusteredFinalParabola, supplementParabola, referencePoint);
+ 
+ for(int i = 0; i < (int)supplementParabola.size(); i++)
+ {
+   parabolaFitting->drawParabola(rgb12, supplementParabola.at(i), Scalar(255, 255, 0));
+ }
+ 
+ /*
+  * vector<TParabola> clusteredParabola2;
+  for(int i = 0; i < (int)clusteredParabola.size(); i++)
+  {
+    clusteredParabola2.push_back(clusteredParabola.at(i));
+  }
+  */
+ /*
+  f o*r(int i = 0; i < (int)clusteredParabola2.size(); i++)
+  {
+    parabolaFitting->drawParabola(rgb12, clusteredParabola2.at(i), Scalar(255, 0, 255));
+  }
+  */
+ 
+ ////////////////////////////////////////////////////////////////////////////////     
+ 
+ Mat rgb13;
+ source.copyTo(rgb13);
+ 
+ CFindGrid* findGrid = new CFindGrid(parabolaFitting->transformationMatrix, parabolaFitting->transformationMatrixInverse, referencePoint);
+ vector<vector<Point2f> > gridPopints;
+ 
+ findGrid->findGrid(finallines, supplementParabola, gridPopints);
+ 
+ for(int i = 0; i < (int)supplementParabola.size(); i++)
+ {
+   parabolaFitting->drawParabola(rgb13, supplementParabola.at(i), Scalar(255, 255, 0));
+ }
+ 
+ for(int i = 0; i < (int)finallines.size(); i++)
+ {
+   drawLine(rgb13, finallines.at(i), Scalar(255, 255, 0));
+ } 
+ 
+ for(int i = 0; i < (int)gridPopints.size(); i++)
+ {
+   for(int j = 0; j < (int)gridPopints.at(i).size(); j++)
+   {
+     drawPoint(rgb13, gridPopints.at(i).at(j), Scalar(0, 0, 255));
+   }
+ } 
+ 
+ ////////////////////////////////////////////////////////////////////////////////  
+ 
     delete parabolaFitting;
     delete ransac;
     delete clustering;
@@ -263,7 +388,9 @@ int main(int argc, char** argv)
     
     imshow("Output: Parabolas", rgb9);
     imshow("Output: Parabolas ransac", rgb10);
-    imshow("Output: Parabolas clustering", rgb11);
+    imshow("Output 11: Parabolas clustering", rgb11);
+    
+    imshow("Output 12: Parabolas supplement", rgb12);
     
     stringstream str1;
     str1 << "all-lines" << x << ".png";
@@ -309,6 +436,8 @@ int main(int argc, char** argv)
     }
   }
 
+  myfile.close();
+  
   delete findEdges;
   delete findEdgels;
   delete lineFitting;
