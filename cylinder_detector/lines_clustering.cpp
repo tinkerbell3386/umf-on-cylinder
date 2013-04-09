@@ -2,6 +2,7 @@
 #include "standart_deviation.h"
 
 using namespace std;
+using namespace cv;
 
 CLineClustring::CLineClustring(TLine _centralLine, 
                                TLine _borderLine) : 
@@ -80,7 +81,7 @@ void CLineClustring::runLinesClustering(vector<TLine> inputLines,
       
       //cout << "getStdDevMean: " << stdDevNew << endl;
       
-      if(stdDevNew > stdDevPrev * 2)// && checkCondition())
+      if(stdDevNew > stdDevPrev * 3)// && checkCondition())
       {       
         break;
       }
@@ -142,9 +143,9 @@ bool CLineClustring::operator()(TLinesCluster c1, TLinesCluster c2)
 void CLineClustring::transformLinesToClusters(std::vector<TLine> lines)
 {
   for(int i = 0; i < (int)lines.size(); i++)
-  {
+  {   
     TLinesCluster cluster;
-    cluster.centroidLine = TLine(lines.at(i).a, lines.at(i).b, lines.at(i).c);
+    cluster.centroidLine = lines.at(i);
     cluster.lines.push_back(lines.at(i));
     cluster.variation = 0;
     
@@ -229,6 +230,7 @@ void CLineClustring::joinClusters(int positionCluster1, int positionCluster2)
   clusters.erase(clusters.begin() + positionCluster2);
   
   clusters.at(positionCluster1).centroidLine = getCentroidLine(clusters.at(positionCluster1).lines);
+  
   clusters.at(positionCluster1).variation = getStdDev(clusters.at(positionCluster1).lines);
 }
 
