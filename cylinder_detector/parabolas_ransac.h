@@ -12,7 +12,11 @@
  * Definuje RANSAC model pro paraboly definující hrany na válci.
  * 
  * Modelem je vzdálenost od přímky, která se fituje na body určené parametrem 
- * zakřivení a Y-ovou souřadnicí středu.
+ * zakřivení a Y-ovou souřadnicí středu. 
+ * 
+ * Další částí modelu je zdálenost od bodu, ve kterém se paraboly protínají - 
+ * všechny by se měli protínat v jednom bodě (bodech). 
+ * Tyto body dávají přímku - horizont - parabola degraduje na přímku.
  * 
  * Inherits from generic CRansac.
  *
@@ -26,10 +30,11 @@ public:
    * Konstruktor CRansacParabola
    *
    * @param     int _numberOfIteration                  počet iterací
-   * @param     int _modelDistanceTrashold              vzdálenostní práh
+   * @param     int _modelDistanceThreshold              vzdálenostní práh
    */
   CRansacParabola(int _numberOfIteration,
-                  double _modelDistanceTrashold = 5
+                  double _modelDistanceThresholdParameters = 2e-4,
+                  double _modelDistanceThresholdHorizon = 150
   );
   
   virtual ~CRansacParabola(){}      // virtual destructor
@@ -48,6 +53,8 @@ public:
   int fitParabolaRANSAC(std::vector<TParabola> parabolas,
                        std::vector<TParabola>& inliers);
   
+  void recomputeClusteredParabolas( std::vector<TParabola> input,
+                                    std::vector<TParabola>& output);
 protected:
 
   /**
@@ -95,8 +102,11 @@ private:
                         std::vector<TParabola>& inliers);
   
 public:
-  double modelDistanceTrashold; // vzdálenostní práh
+  double modelDistanceThresholdParameters; // vzdálenostní práh
+  double modelDistanceThresholdHorizon; // vzdálenostní práh
   TLine testLine;               // testovací přímka
+  TLine horizon;                // horizont
+  cv::Point2f intersection;     // průsečík dvou parabol/všech
 };
 
 #endif // DP_PARABOLA_RANSAC__H

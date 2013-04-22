@@ -13,14 +13,17 @@ void CFittingLine::fitLines(vector<vector<Point2f> > points,
     TLine newLine;
     if(fitLineFromPoints(points.at(i), newLine))
     {
-      lines.push_back(newLine);
+      //if(newLine.deviation < 100 && newLine.mean < 100)
+      //{
+        lines.push_back(newLine);
+      //}
     }
   }
 }
 
 bool CFittingLine::fitLineFromPoints(vector<Point2f> points, TLine& newLine)
 {
-  if(points.size() < 2)
+  if(points.size() < 5)
   {
     cerr << "WARNING: Need at least 2 points to fit a line" << endl;
     return false;
@@ -38,8 +41,9 @@ bool CFittingLine::fitLineFromPoints(vector<Point2f> points, TLine& newLine)
   {
     stdDev->Push(getDistanceLineToPointSquared(newLine, points.at(i)));
   }
-  
-  newLine.deviation = stdDev->StandardDeviation() / points.size();
+ 
+  newLine.deviation = stdDev->StandardDeviation();
+  newLine.mean = stdDev->Mean();
   
   delete stdDev;
   

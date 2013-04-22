@@ -144,8 +144,8 @@ void CParabolaFitting::getAngleAndOrigin(TLine line)
     //ax+bx+c=0 AND y=0 => x = -c/a
     origin = Point2f(-(line.c / line.a), 0);
   }
-  cout << "angle: " <<  angle * 180 / PI << endl;
-  cout << "origin: " <<  origin << endl;
+  //cout << "angle: " <<  angle * 180 / PI << endl;
+  //cout << "origin: " <<  origin << endl;
 }
 
 void CParabolaFitting::setupTrasfomationMatrices()
@@ -173,9 +173,8 @@ void CParabolaFitting::setupTrasfomationMatrices()
   transformationMatrixInverse = Tinv * Rinv;
 }
 
-void CParabolaFitting::drawParabola(Mat& img, TParabola parabola, Scalar color, 
-                                    int thickness)
-{
+void CParabolaFitting::drawParabola(Mat& img, TParabola parabola, Scalar color, int thickness)
+{ 
   Point2f pt1;
   pt1.x = -img.cols;
   pt1.y = parabola.param*pt1.x*pt1.x + parabola.apex.y;

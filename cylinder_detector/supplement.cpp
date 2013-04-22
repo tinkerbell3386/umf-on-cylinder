@@ -8,6 +8,13 @@ void CSupplement::runSupplement(vector<TParabola> inputParabolas,
                                 Point2f referencePoint
                                )
 {  
+  outputParabolas.clear();
+  
+  if(inputParabolas.empty())
+  {
+    return;
+  }
+  
   int bestTmp;
   int best = -1;
   double parameter, bestParameter, bestReference;
@@ -23,9 +30,9 @@ void CSupplement::runSupplement(vector<TParabola> inputParabolas,
     }
   }
   
-  cout << "best: " << best << endl; 
-  cout << "bestParameter: " << bestParameter << endl; 
-  cout << "bestReference: " << bestReference << endl;
+  //cout << "best: " << best << endl; 
+  //cout << "bestParameter: " << bestParameter << endl; 
+  //cout << "bestReference: " << bestReference << endl;
   
   
   double distance = std::abs(inputParabolas.at(bestReference).apex.y - inputParabolas.at(bestReference + 1).apex.y);
@@ -87,7 +94,7 @@ int CSupplement::getScore(int index, vector<TParabola> inputParabolas,
                           double& parameter)
 {
   
-  cout << "----" << index << "----" <<endl;
+  //cout << "----" << index << "----" <<endl;
   
   // referenční vzdálenosti - dvě vzdálenosti vedle sebe
   double distance1 = std::abs(inputParabolas.at(index).apex.y - inputParabolas.at(index+1).apex.y);
@@ -102,7 +109,7 @@ int CSupplement::getScore(int index, vector<TParabola> inputParabolas,
   
   int result = 0; // počet parabol co sedí
   double sumDifference = std::abs(difference); // inicializace součtu všech rozdílů
-  cout << "difference: " << std::abs(difference) << endl;
+  // << "difference: " << std::abs(difference) << endl;
   
   int counter = 1; // počítadlo násobku rozdílu
   int refIndex = index - 1; // startovací index
@@ -119,7 +126,7 @@ int CSupplement::getScore(int index, vector<TParabola> inputParabolas,
       double tmpDifference = std::abs(inputParabolas.at(j).apex.y - position); // rozdíl od ideální pozice
       if(tmpDifference < 5) // test
       {
-        cout << "high: " << std::abs(std::abs(inputParabolas.at(index).apex.y - inputParabolas.at(j).apex.y) - counter * distance1) / (((counter+1)*counter) / 2) << endl;
+        //cout << "high: " << std::abs(std::abs(inputParabolas.at(index).apex.y - inputParabolas.at(j).apex.y) - counter * distance1) / (((counter+1)*counter) / 2) << endl;
         sumDifference += std::abs(std::abs(inputParabolas.at(index).apex.y - inputParabolas.at(j).apex.y) - counter * distance1) / (((counter+1)*counter) / 2); // pro výpočet průměru rozdílu
         
         refIndex = j; // posuneme referenční index
@@ -147,7 +154,7 @@ int CSupplement::getScore(int index, vector<TParabola> inputParabolas,
       double tmpDifference = std::abs(inputParabolas.at(j).apex.y - position); // rozdíl od ideální pozice
       if(tmpDifference < 5)
       {
-        cout << "low: " << std::abs(std::abs(inputParabolas.at(index).apex.y - inputParabolas.at(j).apex.y) - (counter+1) * distance1) / (((counter+2)*(counter+1)) / 2) << endl;
+        //cout << "low: " << std::abs(std::abs(inputParabolas.at(index).apex.y - inputParabolas.at(j).apex.y) - (counter+1) * distance1) / (((counter+2)*(counter+1)) / 2) << endl;
         sumDifference += std::abs(std::abs(inputParabolas.at(index).apex.y - inputParabolas.at(j).apex.y) - (counter+1) * distance1) / (((counter+2)*(counter+1)) / 2);
         
         refIndex = j;
@@ -162,7 +169,7 @@ int CSupplement::getScore(int index, vector<TParabola> inputParabolas,
     counter++;
   }
   
-  cout << "--------" <<endl;
+  //cout << "--------" <<endl;
   
   
   parameter = sumDifference / (result + 1);

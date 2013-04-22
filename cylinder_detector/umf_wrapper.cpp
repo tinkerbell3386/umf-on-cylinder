@@ -80,39 +80,55 @@ int CWrapper::getLineGroups(vector<TLine> lines, vector<TLine>& linesGroup, vect
       {              // je tu presah, jedna cara muze byt ve vice skupinach
         LineDirectionGroups[j].push_back(lines.at(i));
         LineDirectionScores[j] += lines.at(i).score;
-        LineDirectionDev[j] += lines.at(i).deviation;
+        if(lines.at(i).deviation < 10 && lines.at(i).mean < 10)
+        {
+          LineDirectionDev[j] += 1; // počítá přímky co dobře sedí
+        }
       }
     }
   }
   
   double maxValue = LineDirectionScores[0];
   int index = 0;
-  cout << "result value " << index << ": " << maxValue << endl;
+  //cout << "result value " << index << ": " << maxValue << endl;
   
   for(int i = 1; i < 4; i++)
   {
     double value =  LineDirectionScores[i];
-    cout << "result value " << i << ": " << value << endl;
+    //cout << "result value " << i << ": " << value << endl;
     if(maxValue < value)
     {
       maxValue = value;
       index = i;
     }
   }
-  
-  // Find the max element
-  //int index = max_element(LineDirectionResult, LineDirectionResult + 4 * sizeof(double)) - LineDirectionResult;
 
-  if((LineDirectionDev[index] / LineDirectionGroups[index].size()) < (LineDirectionDev[(index + 2) % 4] / LineDirectionGroups[(index + 2) % 4].size()))
+  // předpoklad je, že počet dobře sedících přímek je větší u čar
+  if(LineDirectionDev[index] > LineDirectionDev[(index + 2) % 4])
   {
-    linesGroup = LineDirectionGroups[index];
+    for(int i = 0; i < (int)LineDirectionGroups[index].size(); i++)
+    {      
+      if(LineDirectionGroups[index].at(i).deviation < 10 && LineDirectionGroups[index].at(i).mean < 10)
+      {
+        linesGroup.push_back(LineDirectionGroups[index].at(i));
+      }
+    }   
+    
     linesGroup2 = LineDirectionGroups[(index + 2) % 4];
   }
   else
   {
-    linesGroup = LineDirectionGroups[(index + 2) % 4];
     linesGroup2 = LineDirectionGroups[index];
+    
+    for(int i = 0; i < (int)LineDirectionGroups[(index + 2) % 4].size(); i++)
+    {      
+      if(LineDirectionGroups[(index + 2) % 4].at(i).deviation < 10 && LineDirectionGroups[(index + 2) % 4].at(i).mean < 10)
+      {
+        linesGroup.push_back(LineDirectionGroups[(index + 2) % 4].at(i));
+      }
+    }   
   }
+  
   
   return index;
 }

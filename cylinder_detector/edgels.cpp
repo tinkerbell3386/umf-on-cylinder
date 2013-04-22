@@ -28,8 +28,7 @@ Vec2f CFindEdgels::getSobelResponse(Mat img, Point2f point)
 Point2f CFindEdgels::binarySearch(Mat img,
                                 Point2f heigher,
                                 Point2f lower,
-                                const int edgeTreshold,
-                                Mat &draw
+                                const int edgeTreshold
                                 )
 {
   // first middle point
@@ -67,8 +66,6 @@ Point2f CFindEdgels::binarySearch(Mat img,
     }
   }
 
-  //circle(draw, middle, 3, Scalar(0, 120, 120), -1);
-
   // return middle - edge point
   return middle;
 }
@@ -76,8 +73,7 @@ Point2f CFindEdgels::binarySearch(Mat img,
 bool CFindEdgels::getEdgePoint(Mat img,
                                 Point2f basePoint,
                                 Vec2f shiftVector,
-                                Point2f &edge,
-                                Mat &draw
+                                Point2f &edge
                               )
 {
   // new border points
@@ -87,8 +83,6 @@ bool CFindEdgels::getEdgePoint(Mat img,
   Point2f right(basePoint.x + shiftVector[0] * (-searchRadius),
               basePoint.y + shiftVector[1] * (-searchRadius));
   
-  //line(draw, left, right, cvScalar(0, 120, 120), 1);
-
   //test for out of bound coordinates
   if(left.x < 0 || right.x < 0 || left.y < 0 || right.y < 0 ||
       left.x >= img.cols || right.x >= img.cols ||
@@ -114,7 +108,7 @@ bool CFindEdgels::getEdgePoint(Mat img,
     std::swap(left, right);
   }
   
-  edge = binarySearch(img, right, left, edgeTreshold, draw);
+  edge = binarySearch(img, right, left, edgeTreshold);
   
   return true;
 }
@@ -123,7 +117,7 @@ void CFindEdgels::getNewPoints(Mat img,
                                 Point2f originPoint,
                                 Vec2f shiftVector,
                                 vector<Point2f> &newEdges,
-                                Mat &draw, Scalar color
+                                Scalar color
                               )
 {
   bool test = true;
@@ -138,10 +132,6 @@ void CFindEdgels::getNewPoints(Mat img,
   Point2f basePoint(originPoint.x + shiftVector[0] * searchStep,
                   originPoint.y + shiftVector[1] * searchStep);
 
-  //line(draw, basePoint, startPoint, cvScalar(0, 0, 255), 1);
-  //circle(draw, startPoint, 3, Scalar(0, 255, 0), -1);
-  //circle(draw, basePoint, 3, Scalar(255, 0, 0), -1);
-
   int counter = 0;
   while(test && counter < 500) {
     
@@ -152,30 +142,16 @@ void CFindEdgels::getNewPoints(Mat img,
     shiftVector[0] *= -1.f;
     std::swap(shiftVector[0], shiftVector[1]);
     
-    test = getEdgePoint(img, basePoint, shiftVector, newEdge, draw);
+    test = getEdgePoint(img, basePoint, shiftVector, newEdge);
 
     if(test) {
 
-      //circle(draw, newEdge, 3, Scalar(255, 0, 0), -1);
-      //line(draw, newEdge, startPoint, cvScalar(0, 0, 255), 1);
-
       // save new edge
-      drawPoint(draw, newEdge, color);
       newEdges.push_back(newEdge);
 
       // compute new translation vector from last two points
       shiftVector = normalizeVector(Vec2f(newEdge.x - startPoint.x,
                                           newEdge.y - startPoint.y));
-      // handle running in the circle
-      // if point is closer to the origin than serachStep (ants renurned back),
-      // stop cycling
-      /*if( ((originPoint.x - newEdge.x)*(originPoint.x - newEdge.x) +
-        (originPoint.y - newEdge.y)*(originPoint.y - newEdge.y)) <
-        searchStep * searchStep
-        )
-      {
-        break;
-      }*/
 
       // holds previous edge
       startPoint = newEdge;
@@ -191,8 +167,7 @@ void CFindEdgels::getNewPoints(Mat img,
 
 void CFindEdgels::getEdgesFromEdgePoints(Mat img,
                                           vector<Point2f> baseEdges,
-                                          vector<vector<Point2f> > &newEdges,
-                                          Mat &draw
+                                          vector<vector<Point2f> > &newEdges
                                         )
 {
   // cycle through all given edge points
@@ -212,9 +187,8 @@ void CFindEdgels::getEdgesFromEdgePoints(Mat img,
 
     tmpEdges.push_back(baseEdges.at(i));
     
-    //circle(draw, baseEdges[i], 3, Scalar(0, 255, 0), -1);
     // find new points
-    getNewPoints(img, baseEdges[i], shiftVector, tmpEdges, draw, Scalar(0, 255, 0));
+    getNewPoints(img, baseEdges[i], shiftVector, tmpEdges, Scalar(0, 255, 0));
     
     Point2f endPoint;
     bool isEmpty = tmpEdges.empty();
@@ -226,7 +200,7 @@ void CFindEdgels::getEdgesFromEdgePoints(Mat img,
     
     shiftVector *= -1.f;
 
-    getNewPoints(img, baseEdges[i], shiftVector, tmpEdges, draw, Scalar(0, 0, 255));
+    getNewPoints(img, baseEdges[i], shiftVector, tmpEdges, Scalar(0, 0, 255));
 
     // farthest points are on the end
     if(!isEmpty)

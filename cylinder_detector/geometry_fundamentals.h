@@ -47,7 +47,9 @@ struct TLine
   int score;                            // počet zdrojových bodů
   double deviation;                     // průměrná variace - zdrojových bodů 
                                         // od přímky
-  
+   double mean;  // průměrná vzd8lenost - zdrojových bodů 
+                                        // od přímky
+                                        
   std::vector<cv::Point2f> points;      // seznam zdrojových hranových bodů
   
   cv::Vec4f lineVector;                 // vektor definující přímku v OpenCV
@@ -227,5 +229,26 @@ double getPointToPointDistance(cv::Point2f a, cv::Point2f b);
 bool getParabolasIntersection(TParabola a, TParabola b, 
                               cv::Point2f& intersection);
 
+/**
+ * Funkce intersectionLineAndParabola
+ *
+ * Vypočte průsečík paraboly a přímky.
+ *
+ * Funkce vrací false pokud prusecik neexistuje jinak true
+ * 
+ * rovnice (úpravou získáme co potřebujeme):
+ * primka: ax + by + c = 0                  *
+ * parabola: y = px^2 + y0
+ * po úpravě: (bp)x^2 + (a)x + (by0 + c) = 0
+ * 
+ * @param  TParabola inputParabola         1. parabola
+ * @param  TParabola inputLine             2. parabola
+ * @param  cv::Point2f& p1                 průsečík
+ * @param  cv::Point2f& p1                 průsečík
+ * 
+ * @return pokud průsečík existuje
+ */
+bool intersectionLineAndParabola(TParabola inputParabola, TLine inputLine, 
+                                 cv::Point2f& p1, cv::Point2f& p2);
 
 #endif // DP_GEOMETRY_FUNDAMENTALS_H

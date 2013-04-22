@@ -5,10 +5,11 @@ using namespace std;
 using namespace cv;
 
 CLineClustring::CLineClustring(TLine _centralLine, 
-                               TLine _borderLine) : 
+                               TLine _borderLine, Point2f center) : 
 centralLine(_centralLine),
 borderLine(_borderLine)
 {
+  centralNormalLine = TLine(Vec4f(centralLine.a, centralLine.b, center.x, center.y));
   clusters.clear();
 }
 
@@ -47,25 +48,37 @@ void CLineClustring::runLinesClustering(vector<TLine> inputLines,
   
   int positionCluster1;
   int positionCluster2;
-  double distanceMin = 0.0;
-  double stdDevNew = 0.0;
-  double stdDevPrev = 0.0;
   
-  cout << "number of clusters: " << clusters.size() << endl; 
+  double distanceMin = 0.0;
+  double distanceMinPrev = 0.0;
+  
+  double distanceDiffPrev = 0.0;
+  double distanceDiff = 0.0;
+  
+  double distanceSum = 0;
+  int counter = 0;
+  //double stdDevNew = 0.0;
+  //double stdDevPrev = 0.0;
+  
+  //cout << "number of clusters: " << clusters.size() << endl; 
   
   while(clusters.size() > 1)
   {
     findMinimumDistancePair(distanceMin,positionCluster1, 
                             positionCluster2);
       
-    //cout << "first minimum distance: " << distanceMin1 << endl;
+    distanceDiffPrev = distanceDiff;
+    
+    distanceDiff = distanceMin - distanceMinPrev;
+    
+    //cout << "first minimum distance: " << distanceMin << endl;
     //cout << "second minimum distance: " << distanceMin2 << endl;
     
-    if(distanceMin < 20)
+    if(distanceMin < 5)
     {
       joinClusters(positionCluster1, positionCluster2);
       
-      stdDevNew = getStdDevMean();
+      //stdDevNew = getStdDevMean();
       
       //cout << "getStdDevMean: " << stdDevNew << endl;
     }
@@ -77,11 +90,14 @@ void CLineClustring::runLinesClustering(vector<TLine> inputLines,
      
       //cout << "getStdDevSum: " << getStdDevSum() << endl;
     
-      stdDevNew = getStdDevMean();
+      //stdDevNew = getStdDevMean();
+      distanceSum += distanceDiffPrev;
+      counter++;
       
-      //cout << "getStdDevMean: " << stdDevNew << endl;
+      //cout << "distanceDiff: " << distanceDiff << endl;
+      //cout << "distanceDiffPrev: " << distanceDiffPrev << endl;
       
-      if(stdDevNew > stdDevPrev * 3)// && checkCondition())
+      if(distanceDiff > distanceDiffPrev * 5 && distanceDiff > 5)
       {       
         break;
       }
@@ -92,8 +108,10 @@ void CLineClustring::runLinesClustering(vector<TLine> inputLines,
       getResultLines(outputLines);
     }
     
-    stdDevPrev = stdDevNew;
-  }
+    //stdDevPrev = stdDevNew;
+    
+    distanceMinPrev = distanceMin;
+  }     
   
   //cout << "number of clusters: " << clusters.size() << endl; 
 }
@@ -215,9 +233,15 @@ double CLineClustring::findMaximumDistance()
 
 double CLineClustring::computeEuclidDistance3DSquared(TLine line1, TLine line2)
 {
-  return  (line1.a-line2.a)*(line1.a-line2.a) + 
-          (line1.b-line2.b)*(line1.b-line2.b) + 
-          (line1.c-line2.c)*(line1.c-line2.c);
+  //getLineIntersection(centralNormalLine, line1);
+  //getLineIntersection(centralNormalLine, line1);
+  
+  // return  std::abs(std::atan(line1.a/line1.b) - std::atan(line2.a/line2.b));
+  return  getPointToPointDistance(getLineIntersection(centralNormalLine, line1), getLineIntersection(centralNormalLine, line2));
+  
+  //return  (line1.a-line2.a)*(line1.a-line2.a) + 
+  //        (line1.b-line2.b)*(line1.b-line2.b) +
+  //        (line1.c-line2.c)*(line1.c-line2.c);
 }
 
 void CLineClustring::joinClusters(int positionCluster1, int positionCluster2)

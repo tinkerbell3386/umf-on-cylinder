@@ -42,7 +42,7 @@ public:
    * @param  std::vector<TEllipse>& ellipses    vektor výstupních elips
    */
   void fitEllipsesFromLines(std::vector<TLine> points, 
-                            std::vector<TEllipse>& ellipses);
+                            std::vector<TEllipse>& ellipses, cv::Size imageSize);
 };
 
 #endif

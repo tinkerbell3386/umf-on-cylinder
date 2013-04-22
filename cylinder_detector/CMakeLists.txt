@@ -37,6 +37,7 @@ ellipses_ransac.cpp
 parabolas_clustering.cpp
 supplement.cpp
 find_grid.cpp
+detector.cpp
 )
 
 set(HDRS
@@ -58,11 +59,18 @@ ellipses_ransac.h
 parabolas_clustering.h
 supplement.h
 find_grid.h
+detector.h
 )
 
+add_library(cylinderDetector SHARED ${SRCS} ${HDRS})
+target_link_libraries(cylinderDetector umfOriginal ${OpenCV_LIBS})
+
+add_executable(testDetector test.cpp ${SRCS} ${HDRS})
+target_link_libraries(testDetector cylinderDetector ${OpenCV_LIBS})
+
 # Ellipse version
-add_executable(cylinder_detector main.cpp ${SRCS} ${HDRS})
-target_link_libraries(cylinder_detector umfOriginal ${OpenCV_LIBS})
+#add_executable(cylinder_detector main.cpp ${SRCS} ${HDRS})
+#target_link_libraries(cylinder_detector umfOriginal ${OpenCV_LIBS})
 
 # Parabola testing
 #add_executable(parabola_test parabola_fitting_test.cpp ${SRCS} ${HDRS})

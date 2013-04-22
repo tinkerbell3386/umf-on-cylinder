@@ -297,3 +297,32 @@ bool getParabolasIntersection(TParabola a, TParabola b,
   return true;
 }
 
+bool intersectionLineAndParabola(TParabola inputParabola, TLine inputLine, 
+                                 Point2f& p1, Point2f& p2)
+{
+  // primka: ax + by + c = 0
+  // parabola: y = px^2 + y0
+  // po úpravě: (bp)x^2 + (a)x + (by0 + c) = 0
+  
+  double a = inputLine.b * inputParabola.param;
+  double b = inputLine.a;
+  double c = inputLine.b * inputParabola.apex.y + inputLine.c;
+  
+  double D = b * b - 4 * a * c;
+  
+  if(D < 0)
+  {
+    cerr << "Cannot find any intersection" << endl;
+    return false;
+  }
+  
+  double x1 = (float)((-b + std::sqrt(D)) / (2*a));
+  double y1 = (float)(inputParabola.param *x1 *x1 + inputParabola.apex.y);
+  p1 = Point2f(x1, y1);
+  
+  double x2 = (float)((-b - std::sqrt(D)) / (2*a));
+  double y2 = (float)(inputParabola.param *x2 *x2 + inputParabola.apex.y);
+  p2 = Point2f(x2, y2);
+  
+  return true;
+}

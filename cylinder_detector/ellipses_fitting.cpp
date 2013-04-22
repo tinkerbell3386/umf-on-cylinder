@@ -18,14 +18,23 @@ bool CEllipseFitting::fitEllipseFromPoints(vector<Point2f> points, TEllipse& new
 }
 
 void CEllipseFitting::fitEllipsesFromLines(vector<TLine> lines, 
-                                           vector< TEllipse >& ellipses)
+                                           vector< TEllipse >& ellipses,
+                                           Size imageSize
+                                          )
 {
   for(int i = 0; i < (int)lines.size(); i++)
   {
     TEllipse newEllipse;
     if(fitEllipseFromPoints(lines.at(i).points, newEllipse))
     {
-      ellipses.push_back(newEllipse);
+      if(newEllipse.center.x > 0 - imageSize.width &&
+         newEllipse.center.x < 2*imageSize.width &&
+         newEllipse.center.y > 0 - imageSize.height &&
+         newEllipse.center.y < 2*imageSize.height
+       )
+       {
+        ellipses.push_back(newEllipse);
+       } 
     }
   }
 }

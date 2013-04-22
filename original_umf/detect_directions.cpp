@@ -10,11 +10,11 @@ int getGroup(std::vector<Line> &groupped,
 			 const int refLineOffset
 			)
 {
-
+/*
   std::cout << " refLine.a: " << refLine.a << std::endl;
   std::cout << " refLine.b: " << refLine.b << std::endl;
   std::cout << " refLine.c: " << refLine.c << std::endl;
-
+*/
 	Line refPoint;
 	refPoint.a = center.x;
 	refPoint.b = center.y;

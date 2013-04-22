@@ -18,7 +18,7 @@ int main(int argc, char** argv)
     double x = rand() % 200;
     double y = testp * x * x + testpy0;
     
-    cout << "point " << i << ": " << Point2f((int)x, (int)y) << endl;
+    //cout << "point " << i << ": " << Point2f((int)x, (int)y) << endl;
     
     points.push_back(Point2f((int)x, (int)y));
   }
@@ -48,7 +48,7 @@ int main(int argc, char** argv)
   for(int i = 0; i < (int)points.size(); i++)
   {
     drawPoint(img, points.at(i), Scalar(0, 255, 0));
-    cout << "transfomPoint " << i << ": " << transfomPoints.at(i) << endl;
+    //cout << "transfomPoint " << i << ": " << transfomPoints.at(i) << endl;
     drawPoint(img, transfomPoints.at(i), Scalar(0, 255, 255));
   }
 

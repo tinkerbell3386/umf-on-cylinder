@@ -46,8 +46,7 @@ public:
    * @param  cv::Mat& draw                              obraz pro ladící účely
    */
   void getEdgesFromEdgePoints(cv::Mat img, std::vector<cv::Point2f> baseEdges,
-                              std::vector<std::vector<cv::Point2f> > &newEdges,
-                              cv::Mat &draw);
+                              std::vector<std::vector<cv::Point2f> > &newEdges);
 
 private:
 
@@ -81,7 +80,7 @@ private:
    * @return  cv::Point2f               edge point
    */
   cv::Point2f binarySearch( cv::Mat img, cv::Point2f heigher, cv::Point2f lower,
-                            const int edgeTreshold, cv::Mat &draw);
+                            const int edgeTreshold);
 
   /**
    * Metoda getNewPoints
@@ -98,8 +97,7 @@ private:
    * @param  cv::Mat& draw                              obraz pro ladění
    */
   void getNewPoints(cv::Mat img, cv::Point2f originPoint, cv::Vec2f shiftVector,
-                    std::vector<cv::Point2f> &newEdges, cv::Mat &draw, 
-                    cv::Scalar color);
+                    std::vector<cv::Point2f> &newEdges, cv::Scalar color);
 
   /**
    * Metoda getEdgePoint
@@ -115,7 +113,7 @@ private:
    * @return  bool                      Pravda pokud je bod nalezen
    */
   bool getEdgePoint(cv::Mat img, cv::Point2f basePoint, cv::Vec2f shiftVector,
-                    cv::Point2f &edge, cv::Mat &draw);
+                    cv::Point2f &edge);
 
   int searchStep;       // vzdálenost mezi hranovými body
   int searchRadius;     // rozsah hledání hranových bodů

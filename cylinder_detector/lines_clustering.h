@@ -40,8 +40,9 @@ public:
    *
    * @param  TLine _centralLine    centrální přímka
    * @param  TLine _borderLine     hraniční přímka
+   * @param  Point2f cente         stred obrazu
    */
-  CLineClustring(TLine _centralLine, TLine _borderLine);
+  CLineClustring(TLine _centralLine, TLine _borderLine, cv::Point2f center);
   
   ~CLineClustring(){}
   
@@ -54,8 +55,8 @@ public:
    * - Následně převede všechny přímky na clustery
    * - Poté postupně sdružuje přímky do clusterů, podle minimální vzdálenosti 
    *    clusterů. Velmi blízké clustery sdružuje automaticky
-   * - Jakmile je rozdíl průměrných odchylek clusterů 2krát větší algoritmus 
-   *    končí a vrací průměrné přímky zbylých clusterů
+   * - jakmile je rozdil vzdálenosti dvojice po sobě jdoucích clusterů clusterů 
+   * větší než práh, clusterování skončí
    * 
    * @param  std::vector<TLine> inputLines      vstupní přímky
    * @param  std::vector<TLine>& outputLines    výstupní přímky
@@ -199,6 +200,7 @@ private:
   
   std::vector<TLinesCluster> clusters;  // clustery
   
+  TLine centralNormalLine; //normala na centralni primku, prochazi stredem obrazu
   TLine centralLine;    // centrální přímka
   TLine borderLine;     // hraniční přímka, určuje trychtýř válce
 };

@@ -40,16 +40,15 @@ int main(int argc, char** argv)
   for(int x = 1; x < 1000; x++) {
 
     stringstream str;
-    str << "../data/images5/" << x << "data.jpg";
+    str << "../data/images8/" << x << "data.jpg";
     //str << "data/test.jpg";
-    cout << str.str() << endl;
+    //cout << str.str() << endl;
 
     Mat source = imread(str.str());
-    Mat draw = imread(str.str());
 
     if(source.data == NULL)
     {
-      cout << "--------- NO MORE IMAGES -------" << endl;
+      //cout << "--------- NO MORE IMAGES -------" << endl;
       break;
     }
     
@@ -64,30 +63,53 @@ int main(int argc, char** argv)
     
     // detekce edgelu
     vector<vector<Point2f> > newEdges;   
-    findEdgels->getEdgesFromEdgePoints(gray, edges, newEdges, draw);
+    findEdgels->getEdgesFromEdgePoints(gray, edges, newEdges);
     
     // fittovani primek
     vector<TLine> lines;
     lineFitting->fitLines(newEdges, lines);
-    
+        
     // 2 main lines direction location
     vector<TLine> linesGrouped;
     vector<TLine> linesGrouped2;
     wrapper->setCenter(Point2f(source.cols / 2, source.rows / 2));
     int index = wrapper->getLineGroups(lines, linesGrouped, linesGrouped2);
-    
+        
     // fitting ellipses
     vector<TEllipse> ellipses;
-    ellipseFitting->fitEllipsesFromLines(linesGrouped2, ellipses);
- 
+    ellipseFitting->fitEllipsesFromLines(linesGrouped2, ellipses, source.size());
+     
     // location of vanishing point and lines correction
     vector<TLine> linesSelected;
     TLine vanishNormal;
     Point2f vanishPoint = wrapper->GetVanishingPoint(linesGrouped, index, linesSelected, vanishNormal, Point2f(source.cols / 2, source.rows / 2));
 
-    cout << "vanishPoint: " << vanishPoint << endl;
+    //cout << "vanishPoint: " << vanishPoint << endl;
     
     TLine centralLine = TLine(Vec4f(vanishNormal.a, vanishNormal.b, vanishPoint.x, vanishPoint.y));
+ 
+////////////////////////////////////////////////////////////////////////////////
+    
+    Mat rgb14;
+    source.copyTo(rgb14);
+    
+    for(int i = 0; i < (int)edges.size(); i++)
+    {
+      drawPoint(rgb14, edges[i], Scalar(255, 255, 0));
+    }
+    
+////////////////////////////////////////////////////////////////////////////////
+    
+    Mat rgb15;
+    source.copyTo(rgb15);
+    
+    for(int i = 0; i < (int)newEdges.size() && i < 1000; i++)
+    {
+      for(int j = 0; j < (int)newEdges.at(i).size(); j++)
+      {
+        drawPoint(rgb15, newEdges.at(i).at(j), Scalar(255, 255, 0));
+      }
+    }
     
 ////////////////////////////////////////////////////////////////////////////////
     Mat rgb;
@@ -95,11 +117,12 @@ int main(int argc, char** argv)
 
     for(int i = 0; i < (int)lines.size(); i++)
     {
+      //cout << "dev: " << lines.at(i).deviation << endl;
+      //cout << "mean: " << lines.at(i).mean << endl;
       drawLine(rgb, lines[i], Scalar(255, 255, 0));
     }
 
 ////////////////////////////////////////////////////////////////////////////////
-
     Mat rgb2;
     source.copyTo(rgb2);
     
@@ -120,7 +143,7 @@ int main(int argc, char** argv)
     Mat rgb3;
     source.copyTo(rgb3);
     
-    drawLine(rgb3, centralLine, Scalar(255, 0, 255), 2);
+    //drawLine(rgb3, centralLine, Scalar(255, 0, 255), 2);
     
     for(int i = 0; i < (int)linesSelected.size(); i++)
     {
@@ -131,8 +154,8 @@ int main(int argc, char** argv)
 
     Mat rgb5;
     source.copyTo(rgb5);
-
-    for (int i=0;i != (int)ellipses.size(); ++i) 
+    
+    for (int i=0;i < (int)ellipses.size(); ++i) 
     {
       ellipse(rgb5, ellipses.at(i).boundingBox, Scalar(255, 255, 0));
       drawPoint(rgb5, ellipses.at(i).mainEdge, Scalar(0, 0, 255));
@@ -141,7 +164,7 @@ int main(int argc, char** argv)
 ////////////////////////////////////////////////////////////////////////////////    
     Mat rgb7;
     source.copyTo(rgb7);   
-    
+        
     // points, all ellipses
     int inliersNumber;
     CRansacEllipse* ransac = new CRansacEllipse(100, vanishPoint, 10, 10, 3.0);
@@ -195,8 +218,12 @@ int main(int argc, char** argv)
     
     vector<TLine> finallines;
     CLineClustring* clustering = new CLineClustring(cylinderCentralLine, pyramideLine);
+    
     cout << "number of selectedLines: " << linesSelected.size() << endl; 
+    
     clustering->runLinesClustering(linesSelected, finallines);
+    
+    cout << "number of final Lines: " << finallines.size() << endl; 
     
     for(int i = 0; i < (int)finallines.size(); i++)
     {
@@ -225,18 +252,49 @@ int main(int argc, char** argv)
     Mat rgb10;
     source.copyTo(rgb10);
         
-    CRansacParabola* parabolaRansac = new CRansacParabola(100, 5e-4);
+    Mat test1(3000, 3000, CV_8UC3);
+    test1.setTo(0);
+    
+    CRansacParabola* parabolaRansac = new CRansacParabola(100, 3e-4, 500);
     vector<TParabola> inliersParabola;
     inliersNumber = parabolaRansac->fitParabolaRANSAC(parabolas, inliersParabola);
-    
+
     cout << "Number of inliers: " << inliersNumber << endl;
     
+    Point2f referencePoint = parabolaRansac->intersection;
+    
+    cout << "reference Point: " << parabolaFitting->transformPointBack(referencePoint) << endl;
+        
     for(int i = 0; i < (int)inliersParabola.size(); i++)
     {
       parabolaFitting->drawParabola(rgb10, inliersParabola.at(i), Scalar(255, 255, 0));
     }
     
-    ////////////////////////////////////////////////////////////////////////////////   
+    /*
+    vector<TParabola> inliersFinalParabola;
+    parabolaRansac->recomputeClusteredParabolas(inliersParabola, inliersFinalParabola);
+    
+    for(int i = 0; i < (int)inliersFinalParabola.size(); i++)
+    {
+      parabolaFitting->drawParabola(rgb10, inliersFinalParabola.at(i), Scalar(255, 0, 255));
+    }  
+    */
+    /*
+    for(int i = 0; i < (int)inliersParabola.size(); i++)
+    {
+      for(int j = i + 1; j < (int)inliersParabola.size(); j++)
+      {
+        Point2f intersectionTmp;
+        if(getParabolasIntersection(inliersParabola.at(i), inliersParabola.at(j), intersectionTmp))
+        {
+          drawPoint(rgb10, parabolaFitting->transformPointBack(intersectionTmp), Scalar(0, 0, 255));
+        }
+      }
+    }
+    */
+    drawPoint(rgb10, parabolaFitting->transformPointBack(referencePoint), Scalar(0, 0, 255));
+    
+   ////////////////////////////////////////////////////////////////////////////////   
 
     Mat rgb11;
     source.copyTo(rgb11);
@@ -247,17 +305,21 @@ int main(int argc, char** argv)
     parabolaClustring->runParabolasClustering(inliersParabola, clusteredParabola);
     
     vector<TParabola> clusteredFinalParabola;
-    Point2f referencePoint = parabolaClustring->recomputeClusteredParabolas(clusteredParabola, clusteredFinalParabola);
+    
+    referencePoint = parabolaClustring->recomputeClusteredParabolas(clusteredParabola, clusteredFinalParabola);
+    
+    cout << "referencePoint: " << referencePoint << endl;
     
     for(int i = 0; i < (int)clusteredFinalParabola.size(); i++)
     {
       parabolaFitting->drawParabola(rgb11, clusteredFinalParabola.at(i), Scalar(255, 255, 0));
     }
     
-    //drawPoint(rgb11, parabolaFitting->transformPointBack(referencePoint), Scalar(0, 0, 255));
+    drawPoint(rgb11, parabolaFitting->transformPointBack(referencePoint), Scalar(0, 0, 255));
     
     
   ////////////////////////////////////////////////////////////////////////////////     
+ 
  
  
  Mat rgb12;
@@ -271,7 +333,10 @@ int main(int argc, char** argv)
    return p1.apex.y < p2.apex.y;
  });
  
- supplement->runSupplement(clusteredFinalParabola, supplementParabola, referencePoint);
+ if(!isnan(referencePoint.x))
+ {
+  supplement->runSupplement(clusteredFinalParabola, supplementParabola, referencePoint);
+ }
  
  for(int i = 0; i < (int)supplementParabola.size(); i++)
  {
@@ -314,7 +379,11 @@ int main(int argc, char** argv)
  vector<TParabola> middleParabolas;
  
  sort(supplementParabola.begin(), supplementParabola.end(), [](TParabola a, TParabola b){return a.apex.y > b.apex.y;});
- findGrid->findMiddleParabolas(supplementParabola, middleParabolas);
+ 
+ if(!isnan(referencePoint.x))
+ {
+  findGrid->findMiddleParabolas(supplementParabola, middleParabolas);
+ }
  
  for(int i = 0; i < (int)middleParabolas.size(); i++)
  {
@@ -364,30 +433,37 @@ int main(int argc, char** argv)
    }
  } 
  
- ////////////////////////////////////////////////////////////////////////////////  
- 
+ //////////////////////////////////////////////////////////////////////////////  
+
     delete parabolaFitting;
-    delete ransac;
-    delete clustering;
     delete parabolaRansac;
     delete parabolaClustring;
-    
+
+    delete ransac;
+    delete clustering;
+
     cout << "-------" << x << "-------" << endl;
+    
+    imshow("Output 14: Edges", rgb14);
+    imshow("Output 15: Edgels", rgb15);
 
     imshow("Output 1: All lines", rgb);
     imshow("Output 2: Lines grouped by direction", rgb2);
     imshow("Output 3: Lines after fitting vanishing point", rgb3);
     imshow("Output 4: lines after clustering", rgb4);
+
     imshow("Output 5: All ellipses", rgb5);
     imshow("Output 7: Ellipses after RANSAC", rgb7);
-    imshow("Output 8: Ellipses after clustering", rgb8);    
+    imshow("Output 8: Ellipses after clustering", rgb8);
+
     imshow("Output 9: Parabolas", rgb9);
     imshow("Output 10: Parabolas ransac", rgb10);
     imshow("Output 11: Parabolas clustering", rgb11);  
     imshow("Output 12: Parabolas supplement", rgb12);  
     imshow("Output 13: Grid", rgb13);
+
     
-    int q = 10;
+    int q = 23;
     
     stringstream str1;
     str1 << (x+q)  << "-01-all-lines" << ".png";
@@ -426,7 +502,8 @@ int main(int argc, char** argv)
     imwrite(str11.str(), rgb11);
     imwrite(str12.str(), rgb12);
     imwrite(str13.str(), rgb13);
-    
+
+
     uchar c = (uchar)waitKey();
 
     if(c == 27)

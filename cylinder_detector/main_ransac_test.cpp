@@ -131,8 +131,8 @@ int main(int argc, char** argv)
   if(fitLineFromPoints(ellipseFinalInliersCenters, ransacLine))
     drawLine(rgb1, ransacLine, Scalar(0,255,0), 1);
 
-  cout << "Number of inliers: " << inliersNumber << endl;
-  cout << "Number of wrong models: " << ransac->wrongModels << endl;
+  //cout << "Number of inliers: " << inliersNumber << endl;
+  //cout << "Number of wrong models: " << ransac->wrongModels << endl;
 
   for (int i=0;i != (int)ellipsesAll.size(); ++i) {
     Scalar color = blue;
@@ -170,8 +170,8 @@ int main(int argc, char** argv)
   if(fitLineFromPoints(ellipseFinalInliersCenters, ransacLine))
     drawLine(rgb2, ransacLine, Scalar(0,255,0), 1);
 
-  cout << "Number of inliers: " << inliersNumber << endl;
-  cout << "Number of wrong models: " << ransac->wrongModels << endl;
+  //cout << "Number of inliers: " << inliersNumber << endl;
+  //cout << "Number of wrong models: " << ransac->wrongModels << endl;
 
   for (int i=0;i != (int)ellipsesAll.size(); ++i) {
     Scalar color = blue;
