@@ -1,3 +1,12 @@
+#include <fstream>
+#include <iostream>
+#include <string>
+
+#include <dirent.h>
+#include <unistd.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+
 # include "detector.h"
 
 using namespace cv;
@@ -9,25 +18,76 @@ bool fexists(const char *filename)
   return ifile.good();
 }
 
-int main(int argc, char** argv)
+bool readDirectory(string dirName, vector<string>& files)
 {
-  CDetector* detector = new CDetector("default.yml");
+  files.clear();
+
+  string filepath;
+  DIR *dp;
+  struct dirent *dirp;
+  struct stat filestat;
   
-  for(int x = 1; x < 1000; x++) {
+  dp = opendir( dirName.c_str() );
+  if (dp == NULL)
+  {
+    cout << "Error(" << errno << ") opening " << dirName << endl;
+    return false;
+  }
+
+  while ((dirp = readdir( dp )))
+  {
+    filepath = dirName + "/" + dirp->d_name;
     
-    stringstream str;
-    str << "../data/images7/" << x << "data.jpg";
+    // If the file is a directory (or is in some way invalid) we'll skip it 
+    if (stat( filepath.c_str(), &filestat )) continue;
+    if (S_ISDIR( filestat.st_mode ))         continue;
     
-    if(!fexists(str.str().c_str()))
+    // Endeavor to read a single number from the file and display it
+    string ending = filepath.substr(filepath.find_last_of(".") + 1);
+    if(ending == "png" || ending == "bmp" || ending == "jpg")
     {
-      break;
-    }
+      files.push_back(filepath);
+    }    
+  }
+
+  closedir( dp );
+  
+  return true;
+}
+
+int main(int argc, char** argv)
+{  
+  if(argc < 3)
+  {
+    cerr << "ERROR: Some parameter is missing" << endl;
+    cerr << "Using: ./testDetector CONFIGURATION_FILE_PATH DIRECTORY_WITH_IMAGES" << endl;
+    return 1;
+  }
     
-    detector->runDetectorTest(str.str());
+  if(!fexists(argv[1]))
+  {
+    cerr << "ERROR: Cannot read configuration file" << endl;
+    return 1;
+  }
+  
+  vector<string> files;
+  
+  if(!readDirectory(argv[2], files))
+  {
+    return 1;
+  }
+  
+  CDetector* detector = new CDetector(argv[1]);
+  
+  for(int x = 0; x < (int)files.size(); x++) {
+    
+    cout << "-------------- start file no. " << x << " [" << files.at(x) << "]--------------" << endl;
+    
+    detector->runDetectorTest(files.at(x));
     
     uchar c = (uchar)waitKey();
     
-    cout << "--------------" << x << "--------------" << endl;
+    cout << "-------------- end file no. " << x << " [" << files.at(x) << "]--------------" << endl;
     
     if(c == 27)
     {

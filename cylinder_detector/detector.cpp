@@ -23,7 +23,9 @@ CDetector::CDetector(string parameterFileName)
   fs["numberOfIterationParabola"] >> numberOfIterationParabola;
   fs["modelDistanceThresholdParameters"] >> modelDistanceThresholdParameters;
   fs["modelDistanceThresholdHorizon"] >> modelDistanceThresholdHorizon;
-    
+  fs["distanceSupplementThreshold"] >> distanceSupplementThreshold;
+  fs["correctnessSupplementThreshold"] >> correctnessSupplementThreshold;
+  
   findEdges = new CFindEdges(scanlineStep, bufferSize, adaptiveThreshold);
   findEdgels = new CFindEdgels(searchStep, searchRadius, searchThreshold);
   
@@ -34,7 +36,7 @@ CDetector::CDetector(string parameterFileName)
   clusteringellipse = new CEllipseClustring();
   parabolaRansac = new CRansacParabola(numberOfIterationParabola, modelDistanceThresholdParameters, modelDistanceThresholdHorizon);
   parabolaClustring = new CParabolaClustring();
-  supplement = new CSupplement();
+  supplement = new CSupplement(distanceSupplementThreshold, correctnessSupplementThreshold);
   
   fs.release();
 }
@@ -273,13 +275,30 @@ void CDetector::runDetectorTest(string fileName)
   
   //cout << "referencePoint: " << referencePoint << endl;
   
+  sort(clusteredFinalParabola.begin(), clusteredFinalParabola.end(), [](TParabola p1, TParabola p2)
+  { 
+    return p1.apex.y < p2.apex.y;
+  });
+  
+  
   for(int i = 0; i < (int)clusteredFinalParabola.size(); i++)
-  {
+  { 
     parabolaFitting->drawParabola(rgb11, clusteredFinalParabola.at(i), Scalar(255, 255, 0));
   }
   
   drawPoint(rgb11, parabolaFitting->transformPointBack(referencePoint), Scalar(0, 0, 255));
   
+  double sum = 0;
+  int counter = 0;
+  for(int i = 1; i < (int)clusteredFinalParabola.size()-3; i++)
+  {
+    counter++;
+    sum += (clusteredFinalParabola.at(i).apex.y - clusteredFinalParabola.at(i+1).apex.y) - (clusteredFinalParabola.at(i+1).apex.y - clusteredFinalParabola.at(i+2).apex.y);
+    cout << "Test: " << (clusteredFinalParabola.at(i).apex.y - clusteredFinalParabola.at(i+1).apex.y) - (clusteredFinalParabola.at(i+1).apex.y - clusteredFinalParabola.at(i+2).apex.y) << endl;
+  }
+  
+  cout << "counter: " << counter << endl;
+  cout << "TEST2: " << (sum / counter) << endl;
   
   ////////////////////////////////////////////////////////////////////////////////     
   
@@ -288,10 +307,10 @@ void CDetector::runDetectorTest(string fileName)
   
   vector<TParabola> supplementParabola;
   
-  sort(clusteredFinalParabola.begin(), clusteredFinalParabola.end(), [](TParabola p1, TParabola p2)
-  { 
-    return p1.apex.y < p2.apex.y;
-  });
+  //sort(clusteredFinalParabola.begin(), clusteredFinalParabola.end(), [](TParabola p1, TParabola p2)
+  //{ 
+  //  return p1.apex.y < p2.apex.y;
+  //});
   
   if(!isnan(referencePoint.x))
   {
@@ -322,6 +341,7 @@ void CDetector::runDetectorTest(string fileName)
   Mat rgb13;
   source.copyTo(rgb13);
   
+  
   CFindGrid* findGrid = new CFindGrid(parabolaFitting->transformationMatrix, parabolaFitting->transformationMatrixInverse, referencePoint, pyramideLine, vanishPoint);
   
   vector<TParabola> middleParabolas;
@@ -337,7 +357,6 @@ void CDetector::runDetectorTest(string fileName)
   {
     parabolaFitting->drawParabola(rgb13, middleParabolas.at(i), Scalar(0, 255, 255));
   } 
-    
   vector<TLine> middleLines;
   
   sort(finallines.begin(), finallines.end(), [&](TLine l1, TLine l2)
@@ -353,7 +372,6 @@ void CDetector::runDetectorTest(string fileName)
   {
     drawLine(rgb13, middleLines.at(i), Scalar(0, 255, 255));
   }
- 
   
   vector<vector<Point2f> > gridPoints;
   findGrid->findGrid(finallines, supplementParabola, gridPoints);
@@ -363,7 +381,7 @@ void CDetector::runDetectorTest(string fileName)
     {
       drawPoint(rgb13, gridPoints.at(i).at(j), Scalar(0, 0, 255));
     }
-  } 
+  }
   
   //////////////////////////////////////////////////////////////////////////////
   
@@ -427,13 +445,13 @@ void CDetector::runDetectorTest(string fileName)
   //imshow("Output 2: Lines grouped by direction", rgb2);
   //imshow("Output 3: Lines after fitting vanishing point", rgb3);
   //imshow("Output 4: lines after clustering", rgb4);
-  imshow("Output 5: All ellipses", rgb5);
-  imshow("Output 7: Ellipses after RANSAC", rgb7);
-  imshow("Output 8: Ellipses after clustering", rgb8);
+  //imshow("Output 5: All ellipses", rgb5);
+  //imshow("Output 7: Ellipses after RANSAC", rgb7);
+  //imshow("Output 8: Ellipses after clustering", rgb8);
   //imshow("Output 9: Parabolas", rgb9);
   //imshow("Output 10: Parabolas ransac", rgb10);
-  //imshow("Output 11: Parabolas clustering", rgb11);  
-  //imshow("Output 12: Parabolas supplement", rgb12);  
+  imshow("Output 11: Parabolas clustering", rgb11);  
+  imshow("Output 12: Parabolas supplement", rgb12);  
   //imshow("Output 13: Grid", rgb13);
   
 }

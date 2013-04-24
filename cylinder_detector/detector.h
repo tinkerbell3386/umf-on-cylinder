@@ -50,6 +50,9 @@ private:
   double modelDistanceThresholdParameters;
   double modelDistanceThresholdHorizon;
   
+  // supplement
+  double distanceSupplementThreshold;
+  double correctnessSupplementThreshold;
   
   CFindEdges* findEdges;
   CFindEdgels* findEdgels;

@@ -65,7 +65,7 @@ detector.h
 add_library(cylinderDetector SHARED ${SRCS} ${HDRS})
 target_link_libraries(cylinderDetector umfOriginal ${OpenCV_LIBS})
 
-add_executable(testDetector test.cpp ${SRCS} ${HDRS})
+add_executable(testDetector test.cpp)
 target_link_libraries(testDetector cylinderDetector ${OpenCV_LIBS})
 
 # Ellipse version

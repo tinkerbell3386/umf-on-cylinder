@@ -17,7 +17,7 @@ class CSupplement
 {
 public:
   
-  CSupplement(){};
+  CSupplement(double _distanceSupplementThreshold, double correctnessSupplementThreshold);
   ~CSupplement(){}
   
   void runSupplement(std::vector<TParabola> inputParabolas, 
@@ -30,8 +30,8 @@ public:
   
 private:
   
- // double threshold;
- // double parameter;
+  double distanceSupplementThreshold;
+  double correctnessSupplementThreshold;
   //double distance;
 };
 
