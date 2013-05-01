@@ -53,6 +53,13 @@ public:
    */
   bool fitParabola(std::vector<cv::Point2f> points, TParabola& parabola);
   
+  bool fitParabolasWithHorizon( cv::Point2f horizon, 
+                                std::vector<cv::Point2f> points, 
+                                TParabola& parabola);
+  
+  void fitParabolasWithHorizon( TLine centralLine, TLine borderLine, cv::Point2f vanish, 
+                                cv::Point2f horizon, std::vector<TLine> lines, 
+                                std::vector<TParabola>& parabolas);
   /**
    * Metoda drawParabola
    * 

@@ -145,7 +145,7 @@ void drawLine(cv::Mat& img, TLine newLine, cv::Scalar color, int thickness = 1);
  * @param  cv::Scalar color     barva
  * @param  int size             velikost
  */
-void drawPoint(cv::Mat& img, cv::Point2f point, cv::Scalar color, int size = 5);
+void drawPoint(cv::Mat& img, cv::Point2f point, cv::Scalar color, int size = 5, int width = 1);
 
 /**
  * Funkce normalizeVector
@@ -167,7 +167,7 @@ cv::Vec2f normalizeVector(cv::Vec2f vector);
  * 
  * @return TLine                normalizovaná přímka
  */
-TLine lineNormalization(TLine inputLine);
+cv::Vec2f slopeNormalization(TLine inputLine);
 
 /**
  * Funkce getSmallerIntersectionAngle

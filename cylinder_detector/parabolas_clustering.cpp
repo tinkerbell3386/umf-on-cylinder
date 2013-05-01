@@ -20,9 +20,12 @@ void CParabolaClustring::runParabolasClustering( vector<TParabola> inputParabola
   int positionCluster1;
   int positionCluster2;
   double distanceMin = 0.0;
-  double stdDevNew = 0.0;
-  double stdDevPrev = 0.0;
-    
+  double distanceMinPrev = 0.0;
+  //double stdDevNew = 0.0;
+  //double stdDevPrev = 0.0;
+  
+  double bestRatio = -1;
+  
   outputParabolas.clear();
   while(clusters.size() > 1)
   {
@@ -31,29 +34,16 @@ void CParabolaClustring::runParabolasClustering( vector<TParabola> inputParabola
     //cout << "first minimum distance: " << distanceMin1 << endl;
     //cout << "second minimum distance: " << distanceMin2 << endl;
     
-    if(distanceMin < 30)
-    {
-      joinClusters(positionCluster1, positionCluster2);
+    if(distanceMin > 10)
+    {      
+      double currentRatio = distanceMin / distanceMinPrev;
+      //double currentRatio = distanceDiff / distanceDiffPrev;
+      //cout << "currentRatio: " << currentRatio << endl;
       
-      stdDevNew = getStdDevMean();
-      
-      //cout << "getStdDevSum: " << stdDevNew << endl;
-    }
-    else
-    {
-      getResultParabolas(outputParabolas);
-      
-      joinClusters(positionCluster1, positionCluster2);
-      
-      //cout << "getStdDevSum: " << getStdDevMean() << endl;
-      
-      stdDevNew = getStdDevMean();
-      
-      //cout << "getStdDevSum: " << stdDevNew << endl;
-      
-      if(stdDevNew > stdDevPrev * 3)
+      if(bestRatio < currentRatio)
       {       
-        break;
+        bestRatio = currentRatio;
+        getResultParabolas(outputParabolas);
       }
     }
     
@@ -62,7 +52,9 @@ void CParabolaClustring::runParabolasClustering( vector<TParabola> inputParabola
       getResultParabolas(outputParabolas);
     }
     
-    stdDevPrev = stdDevNew;
+    joinClusters(positionCluster1, positionCluster2);
+    
+    distanceMinPrev = distanceMin;
   }
 }
 
@@ -122,7 +114,7 @@ double CParabolaClustring::getStdDevMean()
 double CParabolaClustring::computeEuclidDistanceParabolaSquared(
   TParabola parabola1, TParabola parabola2)
 {
-  return (parabola1.apex.y-parabola2.apex.y)*(parabola1.apex.y-parabola2.apex.y);
+  return std::abs(parabola1.apex.y-parabola2.apex.y);
 }
 
 void CParabolaClustring::joinClusters(int positionCluster1, int positionCluster2)
@@ -193,6 +185,9 @@ Point2f CParabolaClustring::recomputeClusteredParabolas(vector<TParabola> input,
   int counter = 0;
   Point2f refPoint(0, 0);
   
+  CStdDev* stdDevX = new CStdDev();
+  CStdDev* stdDevY = new CStdDev();
+  
   // pro všechny kombinace clusterů hledáme společný průsečík pomocí váženého 
   // průměru přes skóre
   for(int i = 0; i < (int)input.size(); i++)
@@ -202,6 +197,9 @@ Point2f CParabolaClustring::recomputeClusteredParabolas(vector<TParabola> input,
       Point2f intersection;
       if(getParabolasIntersection(input.at(i), input.at(j), intersection))
       {
+        stdDevX->Push(intersection.x);
+        stdDevY->Push(intersection.y);
+        
         refPoint.x += (double)intersection.x * (input.at(i).score + input.at(j).score);
         refPoint.y += (double)intersection.y * (input.at(i).score + input.at(j).score);
         counter += input.at(i).score + input.at(j).score;

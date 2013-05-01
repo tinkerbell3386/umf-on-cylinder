@@ -26,7 +26,7 @@ public:
    * @param  TLine _borderLine                      krajní přímka určující hranici válce
    * @param  cv::Point2f _vannishingPoint           úběžník
    */ 
-  CFindGrid(cv::Mat _transformMatrix, cv::Mat _inverseTransformMatrix, cv::Point2f _referenceParabolaPoint, TLine _borderLine, cv::Point2f _vannishingPoint);
+  CFindGrid(cv::Mat _transformMatrix, cv::Mat _inverseTransformMatrix, cv::Point2f _referenceParabolaPoint, TLine _borderLine, cv::Point2f _vannishingPoint, TLine centralLine, cv::Point2f center);
   ~CFindGrid(){}
   
   /**
@@ -116,6 +116,7 @@ private:
   cv::Point2f referenceParabolaPoint; // bod určující horizont
   TLine borderLine;                   // krajní přímka určující hranici válce
   cv::Point2f vannishingPoint;        // úběžník
+  TLine centralNormalLine;
 };
 
 #endif

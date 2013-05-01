@@ -5,13 +5,14 @@
 using namespace cv;
 using namespace std;
 
-CFindGrid::CFindGrid(Mat _transformMatrix, Mat _inverseTransformMatrix, Point2f _referenceParabolaPoint, TLine _borderLine, Point2f _vannishingPoint) :
+CFindGrid::CFindGrid(Mat _transformMatrix, Mat _inverseTransformMatrix, Point2f _referenceParabolaPoint, TLine _borderLine, Point2f _vannishingPoint, TLine centralLine, Point2f center) :
   transformMatrix(_transformMatrix),
   inverseTransformMatrix(_inverseTransformMatrix),
   referenceParabolaPoint(_referenceParabolaPoint),
   borderLine(_borderLine),
   vannishingPoint(_vannishingPoint)
 {
+  centralNormalLine = TLine(Vec4f(centralLine.a, centralLine.b, center.x, center.y));
 }
 
 
@@ -38,29 +39,19 @@ void CFindGrid::findGrid(vector< TLine > lines, vector< TParabola > parabolas, v
 }
 
 void CFindGrid::findMiddleLines(vector< TLine > lines, vector< TLine >& middleLines)
-{
+{  
   middleLines.clear();
   if(lines.size() > 1)
   {
-    TLine previousLine = lineNormalization(lines.at(0));
+    Point2f previousPoint = getLineIntersection(centralNormalLine, lines.at(0));
     for(int i = 1; i < (int)lines.size(); i++)
-    {
-      TLine currentLine = lineNormalization(lines.at(i));     
+    {      
+      Point2f currentPoint = getLineIntersection(centralNormalLine, lines.at(i));
       
-      double newA = (previousLine.a - currentLine.a) / 2 + currentLine.a;
-      double newB = (previousLine.b - currentLine.b) / 2 + currentLine.b;
-      double newC = (previousLine.c - currentLine.c) / 2 + currentLine.c;
+      middleLines.push_back(TLine(vannishingPoint, Point2f((previousPoint.x + currentPoint.x) / 2,
+                                                           (previousPoint.y + currentPoint.y) / 2)));
       
-      if(previousLine.a * currentLine.a < 0)
-      {
-        middleLines.push_back(TLine(Vec4f(newA, newB, vannishingPoint.x, vannishingPoint.y)));
-      }
-      else
-      {
-        middleLines.push_back(lineNormalization(TLine(newA, newB, newC)));
-      }
-      
-      previousLine = currentLine;
+      previousPoint = currentPoint;
     }
   }
 }

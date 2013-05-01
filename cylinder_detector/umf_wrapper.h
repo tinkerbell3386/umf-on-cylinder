@@ -21,7 +21,7 @@
 class CWrapper
 {
 public:
-  CWrapper();
+  CWrapper(double _linesDeviationLimit, double _linesMeanLimit);
   ~CWrapper(){};
 
   /**
@@ -77,6 +77,9 @@ public:
 private:
   TLine refLines[4];            // referenční přímky
   cv::Point2f imageCenter;      // střed obrazu
+  
+  double linesDeviationLimit;
+  double linesMeanLimit;
 };
 
 

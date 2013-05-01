@@ -26,7 +26,7 @@ public:
   CDetector(std::string parameterFileName);
   ~CDetector();
   
-  void runDetectorTest(std::string fileName);
+  void runDetectorTest(std::string fileName, bool showImage);
 
 private:
   // edges
@@ -53,6 +53,10 @@ private:
   // supplement
   double distanceSupplementThreshold;
   double correctnessSupplementThreshold;
+  
+  // wrapper
+  double linesDeviationLimit;
+  double linesMeanLimit;
   
   CFindEdges* findEdges;
   CFindEdgels* findEdgels;

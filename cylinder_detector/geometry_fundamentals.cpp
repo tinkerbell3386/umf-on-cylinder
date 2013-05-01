@@ -186,10 +186,10 @@ void drawLine(Mat& img, TLine newLine, Scalar color, int thickness)
 */
 }
 
-void drawPoint(Mat& img, Point2f point, Scalar color, int size)
+void drawPoint(Mat& img, Point2f point, Scalar color, int size, int width)
 {
-  line(img, Point(point.x + size, point.y), Point(point.x - size, point.y), color);
-  line(img, Point(point.x, point.y + size), Point(point.x, point.y - size), color);
+  line(img, Point(point.x + size, point.y), Point(point.x - size, point.y), color, width);
+  line(img, Point(point.x, point.y + size), Point(point.x, point.y - size), color, width);
 }
 
 /*
@@ -212,22 +212,18 @@ Vec2f normalizeVector(Vec2f vector)
   return Vec2f(vector[0] / norm(vector), vector[1] / norm(vector));
 }
 
-TLine lineNormalization(TLine inputLine)
+cv::Vec2f slopeNormalization(TLine inputLine)
 {
-  TLine outputLine;
+  float a,b;
 
   double normalization = std::sqrt(inputLine.a * inputLine.a + inputLine.b * inputLine.b);
 
   if(asin(inputLine.b/normalization) <= 0.f) normalization *= -1.f;
 
-  outputLine.a = inputLine.a / normalization;
-  outputLine.b = inputLine.b / normalization;
-  outputLine.c = inputLine.c;
-  outputLine.score = inputLine.score;
+  a = inputLine.a / normalization;
+  b = inputLine.b / normalization;
 
-  outputLine.lineVector = Vec4f(-outputLine.a, outputLine.b, inputLine.lineVector[2], inputLine.lineVector[3]);
-
-  return outputLine;
+  return Vec2f(a, b);
 }
 
 double getSmallerIntersectionAngle(TLine line1, TLine line2)

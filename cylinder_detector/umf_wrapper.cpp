@@ -5,7 +5,9 @@
 using namespace std;
 using namespace cv;
 
-CWrapper::CWrapper()
+CWrapper::CWrapper(double _linesDeviationLimit, double _linesMeanLimit) :
+linesDeviationLimit(_linesDeviationLimit),
+linesMeanLimit(_linesMeanLimit)
 {
   setCenter(Point2f(0 ,0));
 }
@@ -16,16 +18,16 @@ void CWrapper::setCenter(Point2f _imageCenter)
 
   // lines goes trough the image center: c = - a*center.x - b*center.y;
   // vertical
-  refLines[0] = lineNormalization(TLine(1, 0, - imageCenter.x));
+  refLines[0] = TLine(1, 0, - imageCenter.x);
 
   // 45 degree
-  refLines[1] = lineNormalization(TLine(1, 1, - imageCenter.x - imageCenter.y));
+  refLines[1] = TLine(1, 1, - imageCenter.x - imageCenter.y);
 
   // horizontal
-  refLines[2] = lineNormalization(TLine(0, 1, -imageCenter.y));
+  refLines[2] = TLine(0, 1, -imageCenter.y);
 
   // 135 degree
-  refLines[3] = lineNormalization(TLine(-1, 1, imageCenter.x - imageCenter.y));
+  refLines[3] = TLine(-1, 1, imageCenter.x - imageCenter.y);
 }
 
 Point2f CWrapper::GetVanishingPoint(vector<TLine> lines, int index, vector<TLine>& outputLlines, TLine& normal, Point2f center)
@@ -69,7 +71,7 @@ int CWrapper::getLineGroups(vector<TLine> lines, vector<TLine>& linesGroup, vect
   
   for(int i = 0; i < (int)lines.size(); i++)
   {
-    TLine testLine = lineNormalization(lines.at(i)); //normalize, so we don't have to calculate length
+    TLine testLine = lines.at(i); //normalize, so we don't have to calculate length
 
     for(int j = 0; j < 4; j++)
     {
@@ -80,7 +82,7 @@ int CWrapper::getLineGroups(vector<TLine> lines, vector<TLine>& linesGroup, vect
       {              // je tu presah, jedna cara muze byt ve vice skupinach
         LineDirectionGroups[j].push_back(lines.at(i));
         LineDirectionScores[j] += lines.at(i).score;
-        if(lines.at(i).deviation < 10 && lines.at(i).mean < 10)
+        if(lines.at(i).deviation < linesDeviationLimit && lines.at(i).mean < linesMeanLimit)
         {
           LineDirectionDev[j] += 1; // počítá přímky co dobře sedí
         }
@@ -108,7 +110,7 @@ int CWrapper::getLineGroups(vector<TLine> lines, vector<TLine>& linesGroup, vect
   {
     for(int i = 0; i < (int)LineDirectionGroups[index].size(); i++)
     {      
-      if(LineDirectionGroups[index].at(i).deviation < 10 && LineDirectionGroups[index].at(i).mean < 10)
+      if(LineDirectionGroups[index].at(i).deviation < linesDeviationLimit && LineDirectionGroups[index].at(i).mean < linesMeanLimit)
       {
         linesGroup.push_back(LineDirectionGroups[index].at(i));
       }
@@ -122,7 +124,7 @@ int CWrapper::getLineGroups(vector<TLine> lines, vector<TLine>& linesGroup, vect
     
     for(int i = 0; i < (int)LineDirectionGroups[(index + 2) % 4].size(); i++)
     {      
-      if(LineDirectionGroups[(index + 2) % 4].at(i).deviation < 10 && LineDirectionGroups[(index + 2) % 4].at(i).mean < 10)
+      if(LineDirectionGroups[(index + 2) % 4].at(i).deviation < linesDeviationLimit && LineDirectionGroups[(index + 2) % 4].at(i).mean < linesMeanLimit)
       {
         linesGroup.push_back(LineDirectionGroups[(index + 2) % 4].at(i));
       }

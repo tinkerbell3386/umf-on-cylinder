@@ -60,7 +60,7 @@ int main(int argc, char** argv)
   if(argc < 3)
   {
     cerr << "ERROR: Some parameter is missing" << endl;
-    cerr << "Using: ./testDetector CONFIGURATION_FILE_PATH DIRECTORY_WITH_IMAGES" << endl;
+    cerr << "Using: ./testDetector CONFIGURATION_FILE_PATH DIRECTORY_WITH_IMAGES [SHOW IMAGE SWITCH: true/false]" << endl;
     return 1;
   }
     
@@ -70,8 +70,13 @@ int main(int argc, char** argv)
     return 1;
   }
   
-  vector<string> files;
+  bool showImage = false;
+  if(argc > 4 && string(argv[3]) == "true")
+  {
+    showImage = true;
+  }
   
+  vector<string> files;
   if(!readDirectory(argv[2], files))
   {
     return 1;
@@ -79,13 +84,17 @@ int main(int argc, char** argv)
   
   CDetector* detector = new CDetector(argv[1]);
   
+  uchar c = 0;
   for(int x = 0; x < (int)files.size(); x++) {
     
     cout << "-------------- start file no. " << x << " [" << files.at(x) << "]--------------" << endl;
     
-    detector->runDetectorTest(files.at(x));
+    detector->runDetectorTest(files.at(x), showImage);
     
-    uchar c = (uchar)waitKey();
+    if(showImage)
+    {
+      c = (uchar)waitKey();
+    }
     
     cout << "-------------- end file no. " << x << " [" << files.at(x) << "]--------------" << endl;
     

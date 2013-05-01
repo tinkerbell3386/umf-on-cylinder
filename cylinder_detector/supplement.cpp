@@ -36,10 +36,11 @@ void CSupplement::runSupplement(vector<TParabola> inputParabolas,
     }
   }
   
+  /*
   cout << "best: " << best << endl; 
   cout << "bestParameter: " << bestParameter << endl; 
   cout << "bestReference: " << bestReference << endl;
-  
+  */
   
   double distance = std::abs(inputParabolas.at(bestReference).apex.y - inputParabolas.at(bestReference + 1).apex.y);
   

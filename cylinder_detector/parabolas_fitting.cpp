@@ -9,6 +9,74 @@ CParabolaFitting::CParabolaFitting(TLine centralLine)
   setupTrasfomationMatrices();
 }
 
+void CParabolaFitting::fitParabolasWithHorizon(TLine centralLine, TLine borderLine, Point2f vanish, Point2f horizon, vector<TLine> lines, vector<TParabola>& parabolas)
+{
+  double maxAngle = std::abs(getSmallerIntersectionAngle(centralLine, borderLine)) / 1.5;
+  parabolas.clear();
+  for(int i = 0; i < (int)lines.size(); i++)
+  {
+    TParabola parabola;
+    
+    bool test = true;
+    
+    vector<Point2f> pointsGood;
+    pointsGood.clear();
+    for(int j = 0; j < (int)lines.at(i).points.size(); j++)
+    {
+      double angle = std::abs(getSmallerIntersectionAngle(TLine(lines.at(i).points.at(j), vanish), centralLine));
+      if(maxAngle > angle)
+      {
+        pointsGood.push_back(lines.at(i).points.at(j));
+      }
+    }
+    
+    if(test && fitParabolasWithHorizon(horizon, pointsGood, parabola))
+    {
+      parabolas.push_back(parabola);
+    }
+    
+  }
+}
+
+bool CParabolaFitting::fitParabolasWithHorizon(Point2f horizon, vector<Point2f> points, TParabola& parabola)
+{
+  if(points.size() < 2) 
+  {
+    cerr << "At least two points are needed to fit parabola." << endl;
+    return false;
+  }
+  
+  double y0;
+  double p;
+  
+  vector<Point2f> pointsTrasformed;
+  pointsTrasformed.clear();
+  
+  transformPointsToY(points, pointsTrasformed);
+  
+  Mat Y(pointsTrasformed.size(), 1, CV_32FC1);
+  Mat Z(pointsTrasformed.size(), 1, CV_32FC1);
+  
+  for(int i = 0; i < (int)pointsTrasformed.size(); i++)
+  {
+    Y.at<float>(i, 0) = pointsTrasformed.at(i).y - horizon.y;
+    
+    Z.at<float>(i, 0) = pointsTrasformed.at(i).x * pointsTrasformed.at(i).x - horizon.x*horizon.x;
+  }
+  
+  Mat C = (Z.t() * Z).inv() * Z.t() * Y;
+  
+  p = C.at<float>(0, 0);
+  
+  y0 = horizon.y - horizon.x*horizon.x * p;
+  
+  parabola = TParabola(Point2f(0, y0), p, angle, origin.x, 
+                       (int)pointsTrasformed.size());
+  parabola.points = points;
+  
+  return true;
+}
+
 void CParabolaFitting::fitParabolas(vector<TLine> lines, 
                                     vector<TParabola>& parabolas)
 {
@@ -16,14 +84,13 @@ void CParabolaFitting::fitParabolas(vector<TLine> lines,
   for(int i = 0; i < (int)lines.size(); i++)
   {
     TParabola parabola;
-       
+    
     if(fitParabola(lines.at(i).points, parabola))
     {
       parabolas.push_back(parabola);
     }
   }
 }
- 
 
 bool CParabolaFitting::fitParabola(vector<Point2f> points, TParabola& parabola)
 {

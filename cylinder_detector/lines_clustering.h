@@ -38,11 +38,13 @@ public:
   /**
    * Konstruktor CLineClustring
    *
-   * @param  TLine _centralLine    centrální přímka
-   * @param  TLine _borderLine     hraniční přímka
-   * @param  Point2f cente         stred obrazu
+   * @param  TLine _centralLine                 centrální přímka
+   * @param  TLine _borderLine                  hraniční přímka
+   * @param  cv::Point2f cente                  stred obrazu
+   * @param  cv::Point2f vanishingPoint         úběžník
    */
-  CLineClustring(TLine _centralLine, TLine _borderLine, cv::Point2f center);
+  CLineClustring(TLine _centralLine, TLine _borderLine, cv::Point2f center, 
+                 cv::Point2f _vanishingPoint);
   
   ~CLineClustring(){}
   
@@ -200,9 +202,10 @@ private:
   
   std::vector<TLinesCluster> clusters;  // clustery
   
-  TLine centralNormalLine; //normala na centralni primku, prochazi stredem obrazu
-  TLine centralLine;    // centrální přímka
-  TLine borderLine;     // hraniční přímka, určuje trychtýř válce
+  TLine centralNormalLine;      //normala na centralni primku, prochazi stredem obrazu
+  TLine centralLine;            // centrální přímka
+  TLine borderLine;             // hraniční přímka, určuje trychtýř válce
+  cv::Point2f vanishingPoint;   //úběžník
 };
 
 

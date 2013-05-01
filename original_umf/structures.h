@@ -31,7 +31,6 @@ CvPoint pointToLineProjection(CvPoint point, Line line);
 
 void lineNormalization(Line &line);
 
-
 Line cross(Line line1, Line line2);
 
 float dot(Line line1, Line line2);
